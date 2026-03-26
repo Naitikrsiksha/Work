@@ -3,90 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Booking App</title>
+    <title>Multi-Field Service Pro</title>
     <style>
-        :root { --primary: #25D366; --dark: #128C7E; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: var(--bg); margin: 0; }
-        .card { background: white; padding: 25px; border-radius: 15px; max-width: 450px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: var(--dark); text-align: center; margin-top: 0; }
-        label { font-weight: 600; font-size: 14px; color: #555; display: block; margin-top: 10px; }
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 5px rgba(37, 211, 102, 0.2); }
+        :root { --primary: #25D366; --dark: #075E54; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--dark); margin-bottom: 25px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
         
-        #preview { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-top: 10px; border: 2px dashed #ddd; }
-        
-        .result-box { background: #f8f9fa; border-left: 5px solid var(--primary); padding: 15px; border-radius: 4px; margin: 20px 0; }
-        .total-text { font-size: 20px; color: #333; margin: 0; }
-        #totalPrice { color: var(--dark); font-weight: bold; }
+        label { font-weight: bold; display: block; margin-top: 15px; font-size: 14px; color: #555; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: var(--primary); outline: none; background: #fff; }
 
-        button { background-color: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
-        button:hover { background-color: var(--dark); }
-        .footer-note { font-size: 12px; color: #888; text-align: center; margin-top: 10px; }
+        .row { display: flex; gap: 10px; }
+        .row div { flex: 1; }
+
+        #preview-container { margin-top: 15px; text-align: center; position: relative; }
+        #preview { width: 100%; max-height: 250px; object-fit: contain; border-radius: 10px; display: none; border: 1px solid #eee; }
+        
+        .price-card { background: #e8f5e9; padding: 20px; border-radius: 15px; margin-top: 25px; text-align: center; border: 1px dashed var(--primary); }
+        .price-card h3 { margin: 0; color: var(--dark); font-size: 24px; }
+
+        .btn-send { background: var(--primary); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
+        .btn-send:active { transform: scale(0.98); }
+        
+        .info-note { font-size: 11px; color: #666; text-align: center; margin-top: 10px; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Service Request</h2>
-    
-    <label>What work do you need?</label>
-    <input type="text" id="workType" placeholder="e.g., House Painting, Car Repair">
+<div class="container">
+    <h2>All-Field Service App</h2>
 
-    <label>Your Address / Location</label>
-    <textarea id="address" rows="2" placeholder="Enter your full address"></textarea>
+    <label>Select Category</label>
+    <select id="category">
+        <option value="General Work">General / Other</option>
+        <option value="Cleaning">Cleaning Service</option>
+        <option value="Repair">Electric/Plumbing Repair</option>
+        <option value="Delivery">Pickup & Delivery</option>
+        <option value="Construction">Construction/Labor</option>
+    </select>
 
-    <label>Upload Work Image (Optional)</label>
-    <input type="file" id="imageInput" accept="image/*" onchange="previewImage(event)">
-    <img id="preview" alt="Work Preview">
+    <label>Describe the Work</label>
+    <textarea id="workDesc" rows="2" placeholder="Tell us more about the job..."></textarea>
 
-    <label>Work Fee (Base Charge) - ₹</label>
-    <input type="number" id="workFee" placeholder="0" oninput="calculateTotal()">
-
-    <label>Distance from Workshop (km)</label>
-    <input type="number" id="distance" placeholder="0" oninput="calculateTotal()">
-
-    <div class="result-box">
-        <p class="total-text">Total Price: ₹<span id="totalPrice">0</span></p>
+    <div class="row">
+        <div>
+            <label>Preferred Date</label>
+            <input type="date" id="workDate">
+        </div>
+        <div>
+            <label>Preferred Time</label>
+            <input type="time" id="workTime">
+        </div>
     </div>
 
-    <button onclick="sendRequest()">Book via WhatsApp</button>
-    <p class="footer-note">Note: Please attach the photo manually in WhatsApp.</p>
+    <label>Full Address</label>
+    <input type="text" id="address" placeholder="H.No, Street, Landmark">
+
+    <label>Work Photo (to show the task)</label>
+    <input type="file" id="imageInput" accept="image/*" onchange="showPreview(event)">
+    <div id="preview-container">
+        <img id="preview" src="#" alt="Work Preview">
+    </div>
+
+    <div class="row">
+        <div>
+            <label>Work Fee (₹)</label>
+            <input type="number" id="baseFee" value="0" oninput="updatePrice()">
+        </div>
+        <div>
+            <label>Distance (km)</label>
+            <input type="number" id="dist" value="0" oninput="updatePrice()">
+        </div>
+    </div>
+
+    <div class="price-card">
+        <p style="margin:0; font-size: 14px;">Estimated Total Cost</p>
+        <h3>₹<span id="displayTotal">0</span></h3>
+    </div>
+
+    <button class="btn-send" onclick="handleBooking()">Send via WhatsApp</button>
+    
+    <p class="info-note">
+        <b>IMPORTANT:</b> Because of security, you must manually attach the photo in WhatsApp after the chat opens.
+    </p>
 </div>
 
 <script>
-    // Show image preview when selected
-    function previewImage(event) {
+    function showPreview(event) {
         const preview = document.getElementById('preview');
         preview.src = URL.createObjectURL(event.target.files[0]);
         preview.style.display = 'block';
     }
 
-    function calculateTotal() {
-        const workFee = parseFloat(document.getElementById('workFee').value) || 0;
-        const distance = parseFloat(document.getElementById('distance').value) || 0;
-        const kmRate = 2;
-
-        // Math: Work Fee + (Distance * 2)
-        const total = workFee + (distance * kmRate);
-        document.getElementById('totalPrice').innerText = total;
+    function updatePrice() {
+        const fee = parseFloat(document.getElementById('baseFee').value) || 0;
+        const km = parseFloat(document.getElementById('dist').value) || 0;
+        const total = fee + (km * 2);
+        document.getElementById('displayTotal').innerText = total;
     }
 
-    function sendRequest() {
-        const work = document.getElementById('workType').value || "Not specified";
-        const address = document.getElementById('address').value || "Not provided";
-        const total = document.getElementById('totalPrice').innerText;
+    function handleBooking() {
+        const category = document.getElementById('category').value;
+        const desc = document.getElementById('workDesc').value || "No extra details";
+        const date = document.getElementById('workDate').value || "ASAP";
+        const time = document.getElementById('workTime').value || "Anytime";
+        const addr = document.getElementById('address').value || "Not shared";
+        const finalPrice = document.getElementById('displayTotal').innerText;
+        
         const phone = "917766953200";
 
-        const messageText = `*New Service Request*
---------------------------
-*Work:* ${work}
-*Address:* ${address}
-*Estimate:* ₹${total}
---------------------------
-(I have attached a photo below)`;
+        const text = `*NEW SERVICE BOOKING*%0A` +
+                     `--------------------------%0A` +
+                     `*Category:* ${category}%0A` +
+                     `*Description:* ${desc}%0A` +
+                     `*Schedule:* ${date} at ${time}%0A` +
+                     `*Address:* ${addr}%0A` +
+                     `*Estimate:* ₹${finalPrice}%0A` +
+                     `--------------------------%0A` +
+                     `_Note: I am attaching the work photo below..._`;
 
-        const url = `https://wa.me/${phone}?text=${encodeURIComponent(messageText)}`;
-        window.open(url, '_blank');
+        alert("App is opening WhatsApp... Please remember to ATTACH your photo manually from your gallery!");
+        
+        window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
     }
 </script>
 
