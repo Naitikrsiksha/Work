@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multi-Field Service Pro</title>
     <style>
-        :root { --primary: #25D366; --dark: #075E54; --bg: #f4f7f6; }
+        :root { 
+            --primary: #25D366; 
+            --dark: #075E54; 
+            --blue: #3498db;
+            --bg: #f4f7f6; 
+        }
         body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #333; }
         .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: var(--dark); margin-bottom: 25px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
@@ -17,34 +22,36 @@
         .row { display: flex; gap: 10px; }
         .row div { flex: 1; }
 
-        #preview-container { margin-top: 15px; text-align: center; position: relative; }
+        #preview-container { margin-top: 15px; text-align: center; }
         #preview { width: 100%; max-height: 250px; object-fit: contain; border-radius: 10px; display: none; border: 1px solid #eee; }
         
         .price-card { background: #e8f5e9; padding: 20px; border-radius: 15px; margin-top: 25px; text-align: center; border: 1px dashed var(--primary); }
         .price-card h3 { margin: 0; color: var(--dark); font-size: 24px; }
 
-        .btn-send { background: var(--primary); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
-        .btn-send:active { transform: scale(0.98); }
+        .btn-send { background: var(--primary); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); transition: 0.2s; }
+        .btn-call { background: var(--blue); color: white; border: none; padding: 12px; width: 100%; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; text-decoration: none; display: block; text-align: center; box-sizing: border-box; }
         
-        .info-note { font-size: 11px; color: #666; text-align: center; margin-top: 10px; line-height: 1.4; }
+        .btn-send:active, .btn-call:active { transform: scale(0.98); }
+        
+        .info-note { font-size: 11px; color: #666; text-align: center; margin-top: 15px; line-height: 1.4; background: #fffde7; padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>All-Field Service App</h2>
+    <h2>Service Request App</h2>
 
-    <label>Select Category</label>
+    <label>Select Work Category</label>
     <select id="category">
         <option value="General Work">General / Other</option>
         <option value="Cleaning">Cleaning Service</option>
-        <option value="Repair">Electric/Plumbing Repair</option>
+        <option value="Electric/Plumbing">Electric/Plumbing Repair</option>
         <option value="Delivery">Pickup & Delivery</option>
-        <option value="Construction">Construction/Labor</option>
+        <option value="Labor">Construction/Labor</option>
     </select>
 
-    <label>Describe the Work</label>
-    <textarea id="workDesc" rows="2" placeholder="Tell us more about the job..."></textarea>
+    <label>Work Description</label>
+    <textarea id="workDesc" rows="2" placeholder="Describe what needs to be done..."></textarea>
 
     <div class="row">
         <div>
@@ -57,10 +64,10 @@
         </div>
     </div>
 
-    <label>Full Address</label>
-    <input type="text" id="address" placeholder="H.No, Street, Landmark">
+    <label>Your Full Address</label>
+    <input type="text" id="address" placeholder="House No, Area, Landmark">
 
-    <label>Work Photo (to show the task)</label>
+    <label>Upload Photo of Work</label>
     <input type="file" id="imageInput" accept="image/*" onchange="showPreview(event)">
     <div id="preview-container">
         <img id="preview" src="#" alt="Work Preview">
@@ -78,24 +85,30 @@
     </div>
 
     <div class="price-card">
-        <p style="margin:0; font-size: 14px;">Estimated Total Cost</p>
+        <p style="margin:0; font-size: 14px;">Estimated Total (₹2/km added)</p>
         <h3>₹<span id="displayTotal">0</span></h3>
     </div>
 
-    <button class="btn-send" onclick="handleBooking()">Send via WhatsApp</button>
+    <button class="btn-send" onclick="handleBooking()">Book via WhatsApp</button>
+    <a href="tel:+917766953200" class="btn-call">📞 Call Now for Urgent Work</a>
     
     <p class="info-note">
-        <b>IMPORTANT:</b> Because of security, you must manually attach the photo in WhatsApp after the chat opens.
+        <b>HOW TO ATTACH PHOTO:</b><br>
+        After clicking "Book", WhatsApp will open. 1. Send the text message. 2. Use the paperclip (📎) icon in WhatsApp to attach your photo.
     </p>
 </div>
 
 <script>
+    // 1. Function to show the image preview on the screen
     function showPreview(event) {
         const preview = document.getElementById('preview');
-        preview.src = URL.createObjectURL(event.target.files[0]);
-        preview.style.display = 'block';
+        if(event.target.files.length > 0) {
+            preview.src = URL.createObjectURL(event.target.files[0]);
+            preview.style.display = 'block';
+        }
     }
 
+    // 2. Logic to calculate price: Base Fee + (KM * 2)
     function updatePrice() {
         const fee = parseFloat(document.getElementById('baseFee').value) || 0;
         const km = parseFloat(document.getElementById('dist').value) || 0;
@@ -103,7 +116,8 @@
         document.getElementById('displayTotal').innerText = total;
     }
 
-    function handleBooking() {
+    // 3. Logic to send data to WhatsApp
+    async function handleBooking() {
         const category = document.getElementById('category').value;
         const desc = document.getElementById('workDesc').value || "No extra details";
         const date = document.getElementById('workDate').value || "ASAP";
@@ -113,19 +127,33 @@
         
         const phone = "917766953200";
 
-        const text = `*NEW SERVICE BOOKING*%0A` +
-                     `--------------------------%0A` +
-                     `*Category:* ${category}%0A` +
-                     `*Description:* ${desc}%0A` +
-                     `*Schedule:* ${date} at ${time}%0A` +
-                     `*Address:* ${addr}%0A` +
-                     `*Estimate:* ₹${finalPrice}%0A` +
-                     `--------------------------%0A` +
-                     `_Note: I am attaching the work photo below..._`;
+        // Create the formatted message
+        const text = `*NEW SERVICE BOOKING*\n` +
+                     `--------------------------\n` +
+                     `*Category:* ${category}\n` +
+                     `*Description:* ${desc}\n` +
+                     `*Schedule:* ${date} at ${time}\n` +
+                     `*Address:* ${addr}\n` +
+                     `*Estimate:* ₹${finalPrice}\n` +
+                     `--------------------------\n` +
+                     `_Note: Sending the photo manually now..._`;
 
-        alert("App is opening WhatsApp... Please remember to ATTACH your photo manually from your gallery!");
-        
-        window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+        // Check if the device supports the "Share" menu (best for mobile)
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Service Booking Request',
+                    text: text,
+                });
+            } catch (err) {
+                // Fallback to direct WhatsApp link if they cancel the share menu
+                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+            }
+        } else {
+            // Desktop/Old Browser fallback
+            alert("Opening WhatsApp... Please remember to attach your photo manually!");
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+        }
     }
 </script>
 
