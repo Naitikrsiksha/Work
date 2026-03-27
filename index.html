@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game hub!!�</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --chat-bg: #1e293b;
+            --primary: #00e5ff;
+            --user-msg: #334155;
+            --ai-msg: #0f172a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: white;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            padding: 15px 20px;
+            background: var(--chat-bg);
+            border-bottom: 2px solid var(--primary);
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Chat Container */
+        #chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 15px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background: var(--chat-bg);
+            border-bottom-left-radius: 2px;
+            border: 1px solid #334155;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: var(--primary);
+            color: black;
+            font-weight: 500;
+            border-bottom-right-radius: 2px;
+        }
+
+        /* Typing Dots Animation */
+        .typing {
+            font-style: italic;
+            font-size: 13px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        /* Game Iframe Wrapper */
+        .game-wrapper {
+            width: 100%;
+            height: 500px;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid var(--primary);
+            margin-top: 10px;
+            display: none;
+        }
+
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background: var(--chat-bg);
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 12px 15px;
+            border-radius: 10px;
+            color: white;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--primary); }
+
+        .send-btn {
+            background: var(--primary);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Quick Suggestions Buttons */
+        .suggestions {
+            display: flex;
+            gap: 8px;
+            padding: 0 20px 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .suggest-btn {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .suggest-btn:hover { background: rgba(0, 229, 255, 0.1); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <span><i class="fas fa-robot"></i> NAITIK AI v2.0</span>
+        <button onclick="location.reload()" style="background:none; border:none; color:white; cursor:pointer;"><i class="fas fa-redo"></i></button>
+    </div>
+
+    <div id="chat-container">
+        <div class="message ai-message">
+            Hello! Main Game hub AI hoon. Main aapko games dhundhne aur khelne me help kar sakta hoon. <br><br>
+            Aap mujhse puch sakte hain: "Kaunse games hain?" ya kisi game ka naam likh sakte hain.
+        </div>
+    </div>
+
+    <div id="status" class="typing" style="padding: 0 20px;"></div>
+
+    <div class="suggestions">
+        <button class="suggest-btn" onclick="handleInput('How many games available?')">How many games available?</button>
+        <button class="suggest-btn" onclick="handleInput('Name them')">Name them</button>
+        <button class="suggest-btn" onclick="handleInput('Play Snake')">Play Snake 🐍</button>
+        <button class="suggest-btn" onclick="handleInput('Hill Climb Racer')">Hill Climb 🚗</button>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Search game or ask anything..." onkeypress="if(event.key === 'Enter') handleInput()">
+        <button class="send-btn" onclick="handleInput()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const statusEl = document.getElementById('status');
+        const userInput = document.getElementById('userInput');
+
+        // Game Data Base
+        const games = [
+            { name: "Bubble Shooter", file: "bubbles.html", tags: ["bubble", "shoot", "rang", "color"] },
+            { name: "Raja Mantri Chor Sipahi", file: "chor.html", tags: ["raja", "mantri", "chor", "sipahi", "chits", "police"] },
+            { name: "Classic Snake", file: "snakeus.html", tags: ["snake", "apple", "nokia", "saanp"] },
+            { name: "Hill Climb Racer", file: "geminihill.html", tags: ["car", "hill", "climb", "racer", "pahaad"] },
+            { name: "Yuddh Bhoomi", file: "gunish.html", tags: ["war", "army", "gunish", "yuddh", "missile"] },
+            { name: "Sipahi Game", file: "sipahi.html", tags: ["sipahi", "police", "soldier"] }
+        ];
+
+        function addMessage(text, type) {
+            const div = document.createElement('div');
+            div.className = `message ${type}-message`;
+            div.innerHTML = text;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return div;
+        }
+
+        async function handleInput(presetText) {
+            const text = presetText || userInput.value.trim();
+            if (!text) return;
+
+            userInput.value = "";
+            addMessage(text, 'user');
+
+            // AI "Thinking" state
+            statusEl.style.display = 'block';
+            statusEl.innerText = "Naitik papa searching your search...";
+
+            // 3 Second delay as requested
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            statusEl.style.display = 'none';
+
+            processAIResponse(text.toLowerCase());
+        }
+
+        function processAIResponse(query) {
+            let response = "";
+            let foundGame = null;
+
+            // Logic for "How many games"
+            if (query.includes("how many") || query.includes("kitne")) {
+                response = `Mere paas abhi total **${games.length}** games hain. Sab ek se badhkar ek hain!`;
+            } 
+            // Logic for "Name them"
+            else if (query.includes("name") || query.includes("naam") || query.includes("list")) {
+                response = "Ye rahi mere saare games ki list:<br><ul>" + 
+                           games.map(g => `<li>${g.name}</li>`).join("") + 
+                           "</ul>Aap kisi bhi game ka naam likhkar use shuru kar sakte hain.";
+            }
+            // Search Game Logic
+            else {
+                foundGame = games.find(g => 
+                    query.includes(g.name.toLowerCase()) || 
+                    g.tags.some(tag => query.includes(tag))
+                );
+
+                if (foundGame) {
+                    response = `Naitik papa ko mil gaya! Hazir hai aapka pasandida game: **${foundGame.name}**. Kheliye aur enjoy kijiye! 🎮`;
+                } else {
+                    response = "Maafi chahta hoon, mujhe aisa koi game nahi mila. Kya aap kuch aur search karna chahenge?";
+                }
+            }
+
+            addMessage(response, 'ai');
+
+            // Agar game mil gaya toh iframe dikhao
+            if (foundGame) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'game-wrapper';
+                wrapper.style.display = 'block';
+                wrapper.innerHTML = `<iframe src="${foundGame.file}"></iframe>`;
+                chatContainer.appendChild(wrapper);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
