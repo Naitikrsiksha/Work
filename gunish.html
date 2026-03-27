@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yuddh Bhoomi: Army & Missiles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto:wght@500;700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #87CEEB; /* Sky */
+            font-family: 'Roboto', sans-serif;
+            touch-action: none;
+            user-select: none;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Overlays */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+        }
+
+        .hidden { display: none !important; }
+
+        .game-title {
+            font-family: 'Black Ops One', cursive;
+            font-size: 3.5rem;
+            color: #fbbf24;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+            text-align: center;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .btn-action {
+            background: linear-gradient(to bottom, #f59e0b, #d97706);
+            border: 2px solid #fffbeb;
+            padding: 12px 40px;
+            font-size: 1.5rem;
+            color: white;
+            font-family: 'Black Ops One', cursive;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        /* Top HUD */
+        #top-hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .hud-panel {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #475569;
+            padding: 8px 15px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        .gold-text { color: #fbbf24; font-size: 1.4rem; }
+        
+        #health-bar-container {
+            width: 150px;
+            height: 15px;
+            background: #1e293b;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #000;
+            margin-top: 5px;
+        }
+        #health-bar { width: 100%; height: 100%; background: #3b82f6; transition: width 0.2s; }
+
+        /* Bottom Controls UI */
+        #bottom-ui {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 10;
+        }
+
+        /* Weapon Selection */
+        .weapon-panel {
+            display: flex;
+            gap: 10px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 15px;
+            border: 1px solid #334155;
+        }
+
+        .weapon-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            border: 2px solid #475569;
+            background: #1e293b;
+            color: white;
+            font-size: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .weapon-btn.active {
+            border-color: #3b82f6;
+            background: #2563eb;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+        }
+
+        .weapon-name { font-size: 0.6rem; margin-top: 2px; text-transform: uppercase; font-weight: bold; }
+        
+        .cooldown-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background: rgba(0,0,0,0.7);
+            transition: height 0.1s linear;
+        }
+
+        /* Army Spawning */
+        .army-panel {
+            display: flex;
+            gap: 10px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 15px;
+            border: 1px solid #334155;
+        }
+
+        .spawn-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            border: 2px solid #fbbf24;
+            background: #b45309;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .spawn-btn:active { transform: scale(0.95); }
+        .spawn-btn.disabled { filter: grayscale(1); opacity: 0.6; cursor: not-allowed; border-color: #64748b; }
+        .cost-badge { background: #000; color: #fbbf24; font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; margin-top: 2px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- HUD -->
+    <div id="top-hud" class="hidden">
+        <div class="hud-panel">
+            <div class="text-sm text-blue-300">Apna Kila (Base)</div>
+            <div id="health-bar-container"><div id="health-bar"></div></div>
+        </div>
+        <div class="hud-panel text-right">
+            <div class="gold-text"><i class="fa-solid fa-coins"></i> Gold: <span id="gold-el">50</span></div>
+            <div class="text-sm mt-1">Wave: <span id="wave-el" class="text-red-400 font-black">1</span></div>
+        </div>
+    </div>
+
+    <!-- Controls UI -->
+    <div id="bottom-ui" class="hidden">
+        <!-- Hathiyar (Weapons) -->
+        <div class="weapon-panel">
+            <button class="weapon-btn active" id="wpn-bow" onclick="selectWeapon('bow')">
+                <i class="fa-solid fa-location-crosshairs"></i>
+                <span class="weapon-name">Dhanush</span>
+            </button>
+            <button class="weapon-btn" id="wpn-spear" onclick="selectWeapon('spear')">
+                <i class="fa-solid fa-arrow-up-right-dots"></i>
+                <span class="weapon-name">Bhala</span>
+            </button>
+            <button class="weapon-btn" id="wpn-missile" onclick="selectWeapon('missile')">
+                <i class="fa-solid fa-rocket text-red-400"></i>
+                <span class="weapon-name">Missile</span>
+                <div id="missile-cd" class="cooldown-overlay"></div>
+            </button>
+        </div>
+
+        <!-- Sena (Army) -->
+        <div class="army-panel">
+            <button class="spawn-btn" id="btn-spawn-soldier" onclick="spawnFriendly()">
+                <i class="fa-solid fa-khanda text-2xl"></i>
+                <span class="weapon-name mt-1">Sipahi</span>
+                <span class="cost-badge">20 G</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="menu-screen" class="overlay">
+        <h1 class="game-title">Yuddh Bhoomi</h1>
+        <p class="text-lg text-slate-200 mb-8 font-bold text-center">Apni Sena bhejein aur Missile chalayein!<br>Khidki se drag karke nishana lagayein.</p>
+        <button id="startBtn" class="btn-action"><i class="fa-solid fa-jet-fighter-up"></i> Yuddh Shuru</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="overlay hidden">
+        <h1 class="game-title text-red-500">Kila Tabah!</h1>
+        <div class="text-2xl text-white font-bold mb-4">Aap Wave <span id="finalWave" class="text-yellow-400">1</span> tak pahuche!</div>
+        <button id="restartBtn" class="btn-action"><i class="fa-solid fa-rotate-right"></i> Phir Se Khele</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Elements
+        const menuScreen = document.getElementById('menu-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const topHud = document.getElementById('top-hud');
+        const bottomUi = document.getElementById('bottom-ui');
+        
+        const goldEl = document.getElementById('gold-el');
+        const waveEl = document.getElementById('wave-el');
+        const healthBar = document.getElementById('health-bar');
+        const missileCdOverlay = document.getElementById('missile-cd');
+        const spawnBtn = document.getElementById('btn-spawn-soldier');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- GAME STATE ---
+        let isPlaying = false;
+        let gameLoopId;
+        
+        const GRAVITY = 0.4;
+        let GROUND_Y = canvas.height - 120;
+        const BASE_X = 120; // Player Base Width
+        
+        let archer = { x: 80, y: GROUND_Y - 150 };
+
+        // Resources & Stats
+        let gold = 50;
+        let baseHp = 200;
+        let maxBaseHp = 200;
+        let wave = 1;
+        let frames = 0;
+        let spawnRate = 180; // Enemy spawn delay
+
+        // Game Objects
+        let projectiles = [];
+        let friendlies = [];
+        let enemies = [];
+        let particles = [];
+        let explosions = []; // Area of effect animations
+
+        // Weapon System
+        let currentWeapon = 'bow'; // 'bow', 'spear', 'missile'
+        let missileCooldown = 0;
+        const MISSILE_MAX_CD = 300; // 300 frames ~ 5 seconds
+
+        // Aiming System
+        let isAiming = false;
+        let dragStart = { x: 0, y: 0 };
+        let dragCurrent = { x: 0, y: 0 };
+
+        // --- CLASSES ---
+
+        class Unit {
+            constructor(x, y, isFriendly, type) {
+                this.x = x;
+                this.y = y;
+                this.isFriendly = isFriendly;
+                this.type = type;
+                this.action = 'walk'; // 'walk', 'attack'
+                this.attackCooldown = 0;
+                
+                // Stats setup
+                if (isFriendly) {
+                    this.hp = 30;
+                    this.maxHp = 30;
+                    this.speed = 1.5; // Moves Right
+                    this.damage = 10;
+                    this.color = '#3b82f6'; // Blue Army
+                    this.width = 30;
+                    this.height = 40;
+                    this.attackRange = 40;
+                } else {
+                    // Enemy (different types based on wave)
+                    if(type === 'tank') {
+                        this.hp = 50; this.speed = -0.5; this.damage = 15; this.color = '#ef4444'; this.width=40; this.height=50;
+                    } else if (type === 'fast') {
+                        this.hp = 10; this.speed = -2.5; this.damage = 5; this.color = '#eab308'; this.width=25; this.height=35;
+                    } else {
+                        this.hp = 20; this.speed = -1; this.damage = 10; this.color = '#22c55e'; this.width=30; this.height=40;
+                    }
+                    this.maxHp = this.hp;
+                    this.attackRange = 40;
+                }
+                
+                this.walkCycle = 0;
+            }
+
+            draw() {
+                // Wobble animation
+                if (this.action === 'walk') this.walkCycle += Math.abs(this.speed) * 0.1;
+                const wobble = Math.sin(this.walkCycle) * 4;
+
+                ctx.save();
+                ctx.translate(this.x, this.y - this.height + wobble);
+
+                // Body
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.width/2, 0, this.width, this.height);
+
+                // Sword / Weapon Indicator
+                ctx.fillStyle = '#94a3b8';
+                if (this.isFriendly) {
+                    ctx.fillRect(this.width/2, 15, 15, 5); // Sword pointing right
+                } else {
+                    ctx.fillRect(-this.width/2 - 15, 15, 15, 5); // Sword pointing left
+                }
+
+                // Health Bar (Small)
+                ctx.fillStyle = 'black';
+                ctx.fillRect(-this.width/2, -10, this.width, 4);
+                ctx.fillStyle = this.isFriendly ? '#60a5fa' : '#f87171';
+                ctx.fillRect(-this.width/2, -10, this.width * (this.hp/this.maxHp), 4);
+
+                ctx.restore();
+            }
+
+            update() {
+                // AI Logic: Walk or Attack
+                let targetFound = false;
+                
+                if (this.isFriendly) {
+                    // Look for enemies
+                    for (let e of enemies) {
+                        if (Math.abs(e.x - this.x) < this.attackRange && e.x > this.x) {
+                            targetFound = true;
+                            this.action = 'attack';
+                            if (this.attackCooldown <= 0) {
+                                e.hp -= this.damage;
+                                this.attackCooldown = 60; // 1 attack per second
+                                createParticles(e.x, e.y - 20, '#ef4444', 3);
+                            }
+                            break;
+                        }
+                    }
+                    if (!targetFound) {
+                        this.action = 'walk';
+                        this.x += this.speed;
+                    }
+                } else {
+                    // Look for friendlies or Base
+                    if (this.x <= BASE_X + this.attackRange) {
+                        targetFound = true;
+                        this.action = 'attack';
+                        if (this.attackCooldown <= 0) {
+                            baseHp -= this.damage;
+                            this.attackCooldown = 60;
+                            createParticles(BASE_X, this.y - 20, '#475569', 5);
+                            updateBaseHealth();
+                        }
+                    } else {
+                        for (let f of friendlies) {
+                            if (Math.abs(f.x - this.x) < this.attackRange && f.x < this.x) {
+                                targetFound = true;
+                                this.action = 'attack';
+                                if (this.attackCooldown <= 0) {
+                                    f.hp -= this.damage;
+                                    this.attackCooldown = 60;
+                                    createParticles(f.x, f.y - 20, '#ef4444', 3);
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!targetFound) {
+                        this.action = 'walk';
+                        this.x += this.speed;
+                    }
+                }
+
+                if (this.attackCooldown > 0) this.attackCooldown--;
+                this.draw();
+            }
+        }
+
+        class Projectile {
+            constructor(x, y, vx, vy, type) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.type = type; // 'bow', 'spear', 'missile'
+                this.active = true;
+                this.angle = Math.atan2(vy, vx);
+
+                if (type === 'bow') {
+                    this.gravity = GRAVITY;
+                    this.damage = 10;
+                    this.pierce = 1; // Dies on 1 hit
+                } else if (type === 'spear') {
+                    this.gravity = GRAVITY * 0.4; // Flatter trajectory
+                    this.damage = 25;
+                    this.pierce = 3; // Pierces 3 enemies
+                    this.vx *= 1.5; // Faster
+                    this.vy *= 1.5;
+                } else if (type === 'missile') {
+                    this.gravity = GRAVITY * 1.5; // Heavy
+                    this.damage = 50;
+                    this.pierce = 1; // Explodes on hit
+                    this.isExplosive = true;
+                    this.explosionRadius = 120;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+
+                if (this.type === 'bow') {
+                    ctx.beginPath(); ctx.moveTo(-30, 0); ctx.lineTo(0, 0);
+                    ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 3; ctx.stroke();
+                    ctx.fillStyle = '#cbd5e1'; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-8,-4); ctx.lineTo(-8,4); ctx.fill();
+                } else if (this.type === 'spear') {
+                    ctx.beginPath(); ctx.moveTo(-50, 0); ctx.lineTo(0, 0);
+                    ctx.strokeStyle = '#d1d5db'; ctx.lineWidth = 4; ctx.stroke();
+                    ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-12,-6); ctx.lineTo(-12,6); ctx.fill();
+                } else if (this.type === 'missile') {
+                    // Rocket Body
+                    ctx.fillStyle = '#ef4444'; ctx.fillRect(-25, -8, 25, 16);
+                    // Rocket Nose
+                    ctx.fillStyle = '#cbd5e1'; ctx.beginPath(); ctx.moveTo(0,-8); ctx.lineTo(15,0); ctx.lineTo(0,8); ctx.fill();
+                    // Rocket Fire
+                    ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(-25, 0, Math.random()*10+5, 0, Math.PI*2); ctx.fill();
+                }
+
+                ctx.restore();
+            }
+
+            update() {
+                if (this.active) {
+                    this.vy += this.gravity;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.angle = Math.atan2(this.vy, this.vx);
+
+                    // Ground Hit
+                    if (this.y >= GROUND_Y) {
+                        this.y = GROUND_Y;
+                        this.active = false;
+                        this.triggerImpact();
+                    }
+
+                    // Leave smoke trail for missile
+                    if (this.type === 'missile' && frames % 2 === 0) {
+                        createParticles(this.x - 20, this.y, '#64748b', 1);
+                    }
+                }
+                if (this.active || this.type !== 'missile') { // Don't draw stuck missiles, they explode
+                    this.draw();
+                }
+            }
+
+            triggerImpact() {
+                if (this.isExplosive) {
+                    // Create massive explosion
+                    explosions.push({ x: this.x, y: this.y, radius: 0, maxRadius: this.explosionRadius, alpha: 1 });
+                    createParticles(this.x, this.y, '#f59e0b', 30);
+                    createParticles(this.x, this.y, '#ef4444', 20);
+
+                    // Area damage to enemies
+                    for (let i = enemies.length - 1; i >= 0; i--) {
+                        let e = enemies[i];
+                        let dist = Math.hypot(e.x - this.x, e.y - this.y);
+                        if (dist <= this.explosionRadius) {
+                            e.hp -= this.damage;
+                            if (e.hp <= 0) killEnemy(i);
+                        }
+                    }
+                    this.active = false; // Destroy missile
+                }
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8;
+                this.life = 1;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.life -= 0.05;
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI * 2); ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function createParticles(x, y, color, count) {
+            for(let i=0; i<count; i++) particles.push(new Particle(x, y, color));
+        }
+
+        function killEnemy(index) {
+            let e = enemies[index];
+            createParticles(e.x, e.y - 20, e.color, 10);
+            enemies.splice(index, 1);
+            
+            // Earn Gold
+            addGold(e.type === 'tank' ? 10 : 5);
+        }
+
+        // --- UI & MECHANICS ---
+
+        function addGold(amount) {
+            gold += amount;
+            goldEl.innerText = gold;
+            checkSpawnButton();
+        }
+
+        function updateBaseHealth() {
+            let hpPercent = Math.max(0, (baseHp / maxBaseHp) * 100);
+            healthBar.style.width = hpPercent + '%';
+            if (baseHp <= 0 && isPlaying) {
+                gameOver();
+            }
+        }
+
+        // Weapon Selection from UI
+        window.selectWeapon = function(type) {
+            currentWeapon = type;
+            document.querySelectorAll('.weapon-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('wpn-' + type).classList.add('active');
+        }
+
+        window.spawnFriendly = function() {
+            const cost = 20;
+            if (gold >= cost) {
+                addGold(-cost);
+                // Spawn slightly ahead of castle
+                friendlies.push(new Unit(BASE_X + 20, GROUND_Y, true, 'soldier'));
+            }
+        }
+
+        function checkSpawnButton() {
+            if (gold >= 20) spawnBtn.classList.remove('disabled');
+            else spawnBtn.classList.add('disabled');
+        }
+
+        // --- DRAWING ENVIRONMENT ---
+
+        function drawBackground() {
+            // Sky & Ground
+            ctx.fillStyle = '#87CEEB'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#166534'; ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+
+            // Castle
+            ctx.fillStyle = '#1e293b'; 
+            ctx.fillRect(0, GROUND_Y - 250, BASE_X, 250);
+            for(let i=0; i<BASE_X; i+=30) ctx.fillRect(i, GROUND_Y - 280, 20, 30); // Battlements
+
+            // Archer
+            ctx.fillStyle = '#000';
+            ctx.fillRect(archer.x - 10, archer.y - 20, 20, 40);
+            
+            // Show selected weapon icon above archer
+            ctx.fillStyle = '#fff';
+            ctx.font = '20px "Font Awesome 6 Free"';
+            ctx.textAlign = 'center';
+            let icon = '\uf05b'; // Crosshairs default
+            if(currentWeapon==='spear') icon = '\uf35d'; // Custom approx
+            if(currentWeapon==='missile') icon = '\uf135'; // Rocket
+            ctx.fillText(icon, archer.x, archer.y - 30);
+        }
+
+        function drawTrajectory() {
+            if (!isAiming) return;
+
+            const dx = dragStart.x - dragCurrent.x;
+            const dy = dragStart.y - dragCurrent.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            
+            // Cancel if drag is too small or aiming backwards (left)
+            if(dist < 20 || dx < 0) return;
+
+            const maxDrag = 150;
+            let pullScale = dist > maxDrag ? maxDrag / dist : 1;
+            
+            let vx = (dx * pullScale) * 0.2; 
+            let vy = (dy * pullScale) * 0.2;
+            let grav = GRAVITY;
+
+            // Adjust physics preview for weapon type
+            if (currentWeapon === 'spear') { vx *= 1.5; vy *= 1.5; grav = GRAVITY * 0.4; }
+            if (currentWeapon === 'missile') { grav = GRAVITY * 1.5; }
+
+            ctx.beginPath();
+            let simX = archer.x;
+            let simY = archer.y;
+            let simVy = vy;
+
+            for (let i = 0; i < 40; i++) {
+                simVy += grav;
+                simX += vx;
+                simY += simVy;
+                
+                if (simY > GROUND_Y) break;
+
+                if (i % 4 === 0) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                    ctx.fillRect(simX, simY, 4, 4);
+                }
+            }
+        }
+
+        function drawExplosions() {
+            for(let i = explosions.length - 1; i >= 0; i--) {
+                let ex = explosions[i];
+                ctx.beginPath();
+                ctx.arc(ex.x, ex.y, ex.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(239, 68, 68, ${ex.alpha})`; // Red explosion
+                ctx.fill();
+                
+                // Expand and fade
+                ex.radius += 10;
+                ex.alpha -= 0.05;
+                if(ex.alpha <= 0) explosions.splice(i, 1);
+            }
+        }
+
+        // --- CORE GAME LOOP ---
+
+        function initGame() {
+            gold = 50;
+            wave = 1;
+            baseHp = maxBaseHp;
+            frames = 0;
+            spawnRate = 180;
+            missileCooldown = 0;
+            
+            projectiles = [];
+            friendlies = [];
+            enemies = [];
+            particles = [];
+            explosions = [];
+
+            goldEl.innerText = gold;
+            waveEl.innerText = wave;
+            updateBaseHealth();
+            checkSpawnButton();
+            selectWeapon('bow'); // Default
+            
+            archer.y = GROUND_Y - 200; 
+        }
+
+        function animate() {
+            if(!isPlaying) return;
+            gameLoopId = requestAnimationFrame(animate);
+
+            frames++;
+            drawBackground();
+            drawTrajectory();
+
+            // Passive Gold Generation
+            if(frames % 60 === 0) addGold(1);
+
+            // Handle Missile Cooldown UI
+            if (missileCooldown > 0) {
+                missileCooldown--;
+                let percent = (missileCooldown / MISSILE_MAX_CD) * 100;
+                missileCdOverlay.style.height = percent + '%';
+                // Auto switch to bow if missile on CD and selected
+                if(currentWeapon === 'missile') selectWeapon('bow');
+            } else {
+                missileCdOverlay.style.height = '0%';
+            }
+
+            // Update Arrays
+            for(let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                if(particles[i].life <= 0) particles.splice(i, 1);
+            }
+
+            // Friendly Units
+            for(let i = friendlies.length - 1; i >= 0; i--) {
+                let f = friendlies[i];
+                f.update();
+                if(f.hp <= 0) friendlies.splice(i, 1);
+            }
+
+            // Enemy Units
+            for(let i = enemies.length - 1; i >= 0; i--) {
+                let e = enemies[i];
+                e.update();
+                // Death is handled in Projectile collision or Melee Combat
+            }
+
+            // Projectiles
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                let p = projectiles[i];
+                p.update();
+
+                if(!p.active && p.type === 'missile') {
+                    projectiles.splice(i, 1); // Remove exploded missiles instantly
+                    continue;
+                }
+
+                // Projectile vs Enemy Collision
+                if (p.active) {
+                    let hitX = p.x;
+                    let hitY = p.y;
+
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        let e = enemies[j];
+                        
+                        if (hitX > e.x - e.width/2 && hitX < e.x + e.width/2 &&
+                            hitY > e.y - e.height && hitY < e.y) {
+                            
+                            if(p.type === 'missile') {
+                                p.triggerImpact(); // Explode and damage area
+                                break;
+                            } else {
+                                // Bow or Spear
+                                e.hp -= p.damage;
+                                createParticles(hitX, hitY, '#ef4444', 5);
+                                
+                                p.pierce--;
+                                if(p.pierce <= 0) p.active = false;
+                                
+                                if (e.hp <= 0) killEnemy(j);
+                                
+                                if(!p.active) break;
+                            }
+                        }
+                    }
+                }
+                
+                // Cleanup offscreen or old arrows
+                if(p.x > canvas.width + 100 || (p.y >= GROUND_Y && p.type !== 'missile' && Math.random() < 0.01)) {
+                    projectiles.splice(i, 1);
+                }
+            }
+
+            drawExplosions();
+
+            // Spawner & Wave Logic
+            if (frames % spawnRate === 0) {
+                let type = 'normal';
+                let rand = Math.random();
+                if (wave > 2 && rand < 0.3) type = 'fast';
+                else if (wave > 4 && rand > 0.8) type = 'tank';
+                enemies.push(new Unit(canvas.width + 50, GROUND_Y, false, type));
+            }
+
+            if (frames % 600 === 0) { // Every 10 seconds
+                wave++;
+                waveEl.innerText = wave;
+                spawnRate = Math.max(40, spawnRate - 15);
+            }
+        }
+
+        // --- INPUT HANDLING ---
+
+        function handlePointerDown(e) {
+            // Ignore if clicking UI buttons
+            if(e.target.closest('#bottom-ui') || !isPlaying) return;
+            
+            isAiming = true;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            dragStart = { x: clientX, y: clientY };
+            dragCurrent = { x: clientX, y: clientY };
+        }
+
+        function handlePointerMove(e) {
+            if(!isAiming || !isPlaying) return;
+            // Prevent scrolling on mobile canvas
+            if(e.target === canvas) e.preventDefault();
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            dragCurrent = { x: clientX, y: clientY };
+        }
+
+        function handlePointerUp(e) {
+            if(!isAiming || !isPlaying) return;
+            isAiming = false;
+
+            const dx = dragStart.x - dragCurrent.x;
+            const dy = dragStart.y - dragCurrent.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if(dist < 20 || dx < 0) return; // Must drag backwards (left) to shoot forward
+
+            // Missile Cooldown check
+            if (currentWeapon === 'missile' && missileCooldown > 0) return;
+
+            const maxDrag = 150;
+            let pullScale = dist > maxDrag ? maxDrag / dist : 1;
+            
+            let vx = (dx * pullScale) * 0.2; 
+            let vy = (dy * pullScale) * 0.2;
+
+            if (currentWeapon === 'spear') { vx *= 1.5; vy *= 1.5; }
+
+            // Fire
+            projectiles.push(new Projectile(archer.x, archer.y, vx, vy, currentWeapon));
+
+            // Set Cooldown for Missile
+            if (currentWeapon === 'missile') {
+                missileCooldown = MISSILE_MAX_CD;
+                selectWeapon('bow'); // Auto switch back
+            }
+        }
+
+        window.addEventListener('mousedown', handlePointerDown);
+        window.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+
+        window.addEventListener('touchstart', handlePointerDown, {passive: false});
+        window.addEventListener('touchmove', handlePointerMove, {passive: false});
+        window.addEventListener('touchend', handlePointerUp);
+
+        // --- GAME CONTROLS ---
+
+        function startGame() {
+            menuScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            topHud.classList.remove('hidden');
+            bottomUi.classList.remove('hidden');
+            
+            initGame();
+            isPlaying = true;
+            animate();
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            cancelAnimationFrame(gameLoopId);
+            
+            document.getElementById('finalWave').innerText = wave;
+            
+            topHud.classList.add('hidden');
+            bottomUi.classList.add('hidden');
+            gameOverScreen.classList.remove('hidden');
+        }
+
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+
+    </script>
+</body>
+</html>
+

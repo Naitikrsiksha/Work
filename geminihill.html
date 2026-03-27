@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<title>Hill Climb Racer Pro - Stable Edition</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka+One&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:#111;overflow:hidden;touch-action:none;user-select:none;font-family:'Fredoka One',cursive;}
+canvas{display:block;}
+
+/* UI Styles */
+#ui{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:10px 15px;z-index:10;pointer-events:none;}
+.box{background:rgba(0,0,0,0.7);border:2px solid #00e5ff;border-radius:12px;padding:5px 15px;text-align:center;box-shadow: 0 4px 10px rgba(0, 229, 255, 0.3);}
+.lbl{font-size:10px;color:#b3e5fc;letter-spacing:1px;text-transform:uppercase;}
+.val{font-family:'Bangers',cursive;font-size:28px;color:#00e5ff;letter-spacing:1.5px;text-shadow: 0 0 5px #00e5ff;}
+
+/* Fuel Bar */
+#fbar{position:fixed;bottom:125px;left:50%;transform:translateX(-50%);width:200px;text-align:center;pointer-events:none;z-index:10;}
+#flbl{font-size:12px;color:#ff3366;letter-spacing:2px;margin-bottom:5px; text-shadow: 0 0 5px #000;}
+#ftrack{width:100%;height:16px;background:rgba(0,0,0,0.6);border:2px solid #fff;border-radius:8px;overflow:hidden;}
+#ffill{height:100%;width:100%;background:linear-gradient(90deg,#ff0055,#ffcc00,#00ff88);border-radius:6px; transition: width 0.1s linear;}
+
+/* Controls */
+#btns{position:fixed;bottom:0;left:0;right:0;height:120px;display:flex;justify-content:space-between;align-items:center;padding:10px 20px 25px;z-index:10;}
+.btn{width:130px;height:85px;border-radius:20px;border:none;font-family:'Bangers',cursive;font-size:16px;letter-spacing:1px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px; transition: transform 0.1s;}
+.btn:active{transform:scale(0.92);}
+#bBrake{background:linear-gradient(145deg,#ff3366,#990033);color:#fff;box-shadow:0 6px 0 #660022, 0 10px 20px rgba(255,50,100,.5);}
+#bGas{background:linear-gradient(145deg,#00e5ff,#007799);color:#fff;box-shadow:0 6px 0 #004466, 0 10px 20px rgba(0,200,255,.5);}
+.bico{font-size:32px;line-height:1;}
+.hint{font-size: 10px; opacity: 0.8; font-family: 'Fredoka One', cursive;}
+
+/* Overlays */
+.overlay{position:fixed;inset:0;background:rgba(10,5,20,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:100;backdrop-filter: blur(4px);}
+.overlay.h{display:none;}
+.otit{font-family:'Bangers',cursive;font-size:clamp(48px,12vw,80px);color:#00e5ff;text-shadow:0 0 30px #00e5ff, 0 5px 0 #007799;letter-spacing:4px;text-align:center;line-height:1.1;}
+.osub{font-size:16px;color:#b3e5fc;text-align:center;max-width:300px;line-height:1.6;}
+.oscr{font-family:'Bangers',cursive;font-size:50px;color:#00ff88;text-shadow:0 0 20px #00ff88;letter-spacing:2px;}
+.pbtn{background:linear-gradient(145deg,#ffcc00,#ff6600);border:none;border-radius:20px;padding:16px 50px;font-family:'Bangers',cursive;font-size:32px;color:#331100;letter-spacing:2px;cursor:pointer;box-shadow:0 8px 0 #cc4400, 0 15px 25px rgba(255,100,0,.6); transition: transform 0.1s, box-shadow 0.1s;}
+.pbtn:active{transform:translateY(6px); box-shadow:0 2px 0 #cc4400, 0 5px 10px rgba(255,100,0,.6);}
+
+.pop{position:fixed;font-family:'Bangers',cursive;font-size:24px;color:#ffcc00;text-shadow: 2px 2px 0 #000;pointer-events:none;z-index:50;animation:pop 1s ease-out forwards;}
+@keyframes pop{0%{opacity:1;transform:translateY(0) scale(1);}100%{opacity:0;transform:translateY(-80px) scale(1.5);}}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="ui">
+  <div class="box"><div class="lbl">DURI (DIST)</div><div class="val" id="vDist">0m</div></div>
+  <div class="box"><div class="lbl">SIKKE (COINS)</div><div class="val" id="vCoins">0</div></div>
+  <div class="box"><div class="lbl">BEST</div><div class="val" id="vBest">0m</div></div>
+</div>
+
+<div id="fbar"><div id="flbl">⛽ PETROL (FUEL)</div><div id="ftrack"><div id="ffill"></div></div></div>
+
+<div id="btns">
+  <button class="btn" id="bBrake">
+    <div class="bico">◀</div>BRAKE
+    <div class="hint">Piche / Giraana</div>
+  </button>
+  <button class="btn" id="bGas">
+    <div class="bico">▶</div>GAS
+    <div class="hint">2x Tap = JUMP!</div>
+  </button>
+</div>
+
+<div class="overlay" id="oStart">
+  <div class="otit">🏔️ MONSTER<br>CLIMB</div>
+  <div class="osub">Gas dabao, pahaad chado!<br>Ab car paltegi nahi, chill maaro! 🚙💨</div>
+  <button class="pbtn" id="btnPlay">🚀 KHELO</button>
+</div>
+
+<div class="overlay h" id="oOver">
+  <div class="otit">💥 GAME OVER</div>
+  <div class="oscr" id="oScr">0 m</div>
+  <div class="osub" id="oInf">Sikke: 0</div>
+  <button class="pbtn" id="btnRetry">🔄 FIR SE KHELO</button>
+</div>
+
+<script>
+const cv = document.getElementById('cv');
+const c  = cv.getContext('2d');
+let W, H;
+function rsz(){ W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+window.addEventListener('resize', rsz); rsz();
+
+const K = {gas:false, brake:false};
+let lastGasTapTime = 0;
+
+const gasBtn   = document.getElementById('bGas');
+const brakeBtn = document.getElementById('bBrake');
+
+function handleGasDown(e) {
+  e.preventDefault();
+  K.gas = true;
+  const now = Date.now();
+  if (now - lastGasTapTime < 300 && car.onGround && fuel > 5 && !car.dead) {
+    car.vy = -16; // Jump thoda badha diya
+    fuel -= 5;
+    createParticles(car.x, car.y + WR, '#fff', 20);
+    showPop(car.x - camX, car.y, '🚀 JUMP!');
+    lastGasTapTime = 0;
+  } else {
+    lastGasTapTime = now;
+  }
+}
+
+gasBtn.addEventListener('pointerdown', handleGasDown);
+gasBtn.addEventListener('pointerup', ()=>K.gas=false);
+gasBtn.addEventListener('pointercancel', ()=>K.gas=false);
+gasBtn.addEventListener('pointerleave', ()=>K.gas=false);
+
+brakeBtn.addEventListener('pointerdown', (e)=>{e.preventDefault(); K.brake=true;});
+brakeBtn.addEventListener('pointerup', ()=>K.brake=false);
+brakeBtn.addEventListener('pointercancel', ()=>K.brake=false);
+brakeBtn.addEventListener('pointerleave', ()=>K.brake=false);
+
+document.addEventListener('keydown', e=>{ 
+  if(e.key==='ArrowRight'||e.key==='d'||e.key===' ') {
+    if(!K.gas) {
+      const now = Date.now();
+      if(now - lastGasTapTime < 300 && car.onGround && fuel > 5 && !car.dead) {
+        car.vy = -16; fuel -= 5; createParticles(car.x, car.y+WR, '#fff', 20); showPop(car.x-camX, car.y, '🚀 JUMP!'); lastGasTapTime=0;
+      } else { lastGasTapTime = now; }
+    }
+    K.gas=true;   
+  }
+  if(e.key==='ArrowLeft'||e.key==='a') K.brake=true;  
+});
+document.addEventListener('keyup', e=>{ 
+  if(e.key==='ArrowRight'||e.key==='d'||e.key===' ') K.gas=false;  
+  if(e.key==='ArrowLeft'||e.key==='a') K.brake=false; 
+});
+
+let tSeed = 0;
+function ty(x){
+  return H*0.65 
+    + Math.sin(x*0.001 + tSeed) * 100
+    + Math.sin(x*0.003 + tSeed*1.2) * 50
+    + Math.sin(x*0.006 + tSeed*0.5) * 20;
+}
+function tang(x){
+  const d = 5;
+  return Math.atan2(ty(x+d)-ty(x-d), d*2);
+}
+
+const WR = 24;   
+const ALEN = 45;   
+const BLEN = 30;   
+
+let car = {};
+function newCar(){
+  const sx = 200;
+  car = {
+    x: sx,
+    y: ty(sx) - 60,
+    vx: 0, vy: 0,
+    angle: tang(sx),
+    av: 0,       
+    spin: 0,     
+    dead: false,
+    dTick: 0,
+    onGround: false,
+    totalAngle: 0,   
+    prevAngle: tang(sx)
+  };
+}
+
+const GRAVITY  = 0.65; // Heavy gravity for stability
+const GAS_ACC  = 0.95;  
+const BRAKE_F  = 0.88;  
+const ROLL_F   = 0.992;  
+const MAX_VX   = 20;    
+const AIR_ROT  = 0.05; // Rotation thodi slow ki taaki palte nahi
+
+function stepCar(){
+  if(car.dead) return;
+
+  car.vy += GRAVITY;
+
+  if(K.gas && fuel > 0){
+    car.vx += GAS_ACC;
+    car.spin += 0.4;
+    fuel -= 0.025;
+    if(!car.onGround) car.av -= AIR_ROT;
+  }
+  
+  if(K.brake){
+    if(car.onGround) {
+      car.vx *= BRAKE_F; 
+    } else {
+      car.av += AIR_ROT;
+    }
+    car.spin -= 0.1;
+  }
+
+  if(car.vx > MAX_VX) car.vx = MAX_VX;
+  if(car.vx < -MAX_VX*0.4) car.vx = -MAX_VX*0.4;
+
+  car.vx *= ROLL_F;
+  car.av *= 0.94; // Angular damping
+
+  car.x += car.vx;
+  car.y += car.vy;
+
+  const cos = Math.cos(car.angle);
+  const sin = Math.sin(car.angle);
+
+  const rWx = car.x - cos*ALEN;
+  const rWy = car.y + sin*ALEN;
+  const fWx = car.x + cos*ALEN;
+  const fWy = car.y - sin*ALEN;
+
+  const rGnd = ty(rWx);
+  const fGnd = ty(fWx);
+
+  const rPen = (rWy + WR) - rGnd;
+  const fPen = (fWy + WR) - fGnd;
+
+  car.onGround = false;
+
+  if(rPen > 0 || fPen > 0){
+    car.onGround = true;
+    const avgPen = (Math.max(0, rPen) + Math.max(0, fPen)) / 2;
+    car.y -= avgPen * 0.9;
+    
+    // Auto-balance: Car ko zameen ki dhalan ke hisaab se align karna
+    const targetAngle = Math.atan2(fGnd - rGnd, (fWx - rWx));
+    car.av += (targetAngle - car.angle) * 0.15;
+    
+    if(car.vy > 0) car.vy *= 0.1;
+  }
+
+  car.angle += car.av;
+
+  // Flip tracker
+  let deltaAng = car.angle - car.prevAngle;
+  while(deltaAng > Math.PI) deltaAng -= Math.PI*2;
+  while(deltaAng < -Math.PI) deltaAng += Math.PI*2;
+  if(!car.onGround) car.totalAngle += deltaAng;
+  else car.totalAngle = 0;
+  car.prevAngle = car.angle;
+
+  if (Math.abs(car.totalAngle) >= Math.PI * 1.8) {
+    showPop(car.x - camX, car.y - 60, '🔄 FLIP! +50');
+    coins += 50;
+    car.totalAngle = 0;
+  }
+
+  // DEATH LOGIC: Sirf tabhi marega jab car sach mein palat kar chhat ke bal gire
+  // Angle check: Agar car 90 degree se zyada tilted hai
+  const absAngle = Math.abs(car.angle);
+  if(absAngle > 1.8 && car.onGround){ // 1.8 radians is roughly 100 degrees
+      car.dead = true;
+      createParticles(car.x, car.y, '#ff3300', 40);
+  }
+  
+  if(car.y > H + 500) car.dead = true;
+}
+
+let items = [];
+function makeItems(){
+  items = [];
+  for(let x = 600; x < 200000; x += 250){
+    const y = ty(x) - 50;
+    const type = (Math.floor(x/250) % 5 === 0) ? 'fuel' : 'coin';
+    items.push({x, y, type, got:false});
+  }
+}
+function checkItems(){
+  for(const it of items){
+    if(it.got) continue;
+    if(Math.abs(it.x - car.x) > 100) continue;
+    if(Math.hypot(it.x - car.x, it.y - car.y) < 45){
+      it.got = true;
+      if(it.type==='coin'){ 
+        coins += 5; 
+        showPop(it.x-camX, it.y, '🪙 +5'); 
+        createParticles(it.x, it.y, '#ffcc00', 10); 
+      }
+      else { 
+        fuel = Math.min(100, fuel + 45); 
+        showPop(it.x-camX, it.y, '⛽ FULL!'); 
+        createParticles(it.x, it.y, '#00ff88', 15); 
+      }
+    }
+  }
+}
+
+let pars = [];
+function createParticles(x, y, col, n=10){
+  for(let i=0;i<n;i++){
+    const a = Math.random()*Math.PI*2;
+    const s = Math.random()*5+2;
+    pars.push({x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s - 2, life: 1, col, r: Math.random()*5+2});
+  }
+}
+
+function tickPars(){
+  for(let i=pars.length-1; i>=0; i--){
+    const p = pars[i]; 
+    p.x += p.vx; p.y += p.vy; p.vy += 0.3; p.life -= 0.03;
+    if(p.life <= 0) pars.splice(i, 1);
+  }
+}
+
+function showPop(sx, sy, txt){
+  const el = document.createElement('div');
+  el.className = 'pop'; el.textContent = txt;
+  el.style.cssText = `left:${Math.max(20, Math.min(W-100, sx))}px; top:${sy-30}px;`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1000);
+}
+
+let stars=[];
+function mkStars(){
+  stars=[];
+  for(let i=0;i<100;i++) stars.push({x: Math.random()*W*5, y: Math.random()*H*0.6, r: Math.random()*2+0.5, p: Math.random()*0.5+0.5});
+}
+
+function drawBg(){
+  const g = c.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#050210'); g.addColorStop(0.6,'#150935'); g.addColorStop(1,'#2a1055');
+  c.fillStyle = g; c.fillRect(0,0,W,H);
+  for(const s of stars){
+    const sx = ((s.x - camX*s.p*0.1) % (W*2) + W*2) % (W*2);
+    c.beginPath(); c.arc(sx, s.y, s.r, 0, Math.PI*2);
+    c.fillStyle = `rgba(0, 255, 255, ${0.3 + s.r*0.2})`; c.fill();
+  }
+}
+
+function drawGround(){
+  c.save(); c.translate(-camX, 0);
+  c.beginPath();
+  const x0 = camX - 100, x1 = camX + W + 100;
+  c.moveTo(x0, ty(x0));
+  for(let x=x0; x<=x1; x+=10) c.lineTo(x, ty(x));
+  c.lineTo(x1, H+100); c.lineTo(x0, H+100); c.closePath();
+  const gg = c.createLinearGradient(0, H*0.4, 0, H);
+  gg.addColorStop(0,'#2b1b3d'); gg.addColorStop(1,'#10051c');
+  c.fillStyle = gg; c.fill();
+  c.beginPath();
+  c.moveTo(x0, ty(x0));
+  for(let x=x0; x<=x1; x+=10) c.lineTo(x, ty(x));
+  c.strokeStyle = '#00e5ff'; c.lineWidth = 6; c.lineJoin = 'round'; c.stroke();
+  c.restore();
+}
+
+function drawItems(){
+  c.save(); c.translate(-camX, 0);
+  const t = Date.now()*0.004;
+  for(const it of items){
+    if(it.got) continue;
+    if(it.x < camX-100 || it.x > camX+W+100) continue;
+    const bob = Math.sin(t + it.x*0.01)*8;
+    c.save(); c.translate(it.x, it.y + bob);
+    if(it.type === 'coin'){
+      c.beginPath(); c.arc(0,0,16,0,Math.PI*2);
+      c.fillStyle = '#ffcc00'; c.fill();
+      c.strokeStyle = '#fff'; c.lineWidth = 2; c.stroke();
+    } else {
+      c.fillStyle = '#ff0055'; c.beginPath(); c.roundRect(-12,-16,24,28,6); c.fill();
+    }
+    c.restore();
+  }
+  c.restore();
+}
+
+function drawCar(){
+  c.save();
+  c.translate(car.x - camX, car.y); 
+  c.rotate(car.angle);
+
+  // Wheels
+  drawWheel(-ALEN, 20); 
+  drawWheel(ALEN, 20);
+
+  // Body
+  const BW = 90, BH = 35;
+  c.fillStyle = '#00e5ff';
+  c.beginPath(); 
+  c.roundRect(-BW/2, -BH, BW, BH, 8); 
+  c.fill();
+  c.strokeStyle = '#fff'; c.lineWidth = 3; c.stroke();
+
+  // Window
+  c.fillStyle = 'rgba(0,0,0,0.5)';
+  c.beginPath();
+  c.moveTo(0, -BH+5); c.lineTo(BW/2-5, -BH+15); c.lineTo(BW/2-5, -5); c.lineTo(0, -5);
+  c.fill();
+  
+  c.restore();
+}
+
+function drawWheel(wx, wy){
+  c.save(); c.translate(wx, wy); c.rotate(car.spin);
+  c.beginPath(); c.arc(0, 0, WR, 0, Math.PI*2); c.fillStyle = '#111'; c.fill();
+  c.beginPath(); c.arc(0, 0, WR*0.5, 0, Math.PI*2); c.fillStyle = '#00e5ff'; c.fill();
+  c.restore();
+}
+
+let state = 'start', camX = 0, fuel = 100, coins = 0, dist = 0;
+let best = +localStorage.getItem('hcr_pro_best') || 0;
+
+function startGame(){
+  document.getElementById('oStart').classList.add('h');
+  document.getElementById('oOver').classList.add('h');
+  state = 'play';
+  tSeed = Math.random() * 1000;
+  camX = 0; fuel = 100; coins = 0; dist = 0; pars = [];
+  makeItems(); mkStars(); newCar();
+}
+document.getElementById('btnPlay').onclick = startGame;
+document.getElementById('btnRetry').onclick = startGame;
+
+function updateHUD(){
+  document.getElementById('vDist').textContent  = Math.floor(dist) + 'm';
+  document.getElementById('vCoins').textContent = coins;
+  document.getElementById('vBest').textContent  = Math.floor(best) + 'm';
+  document.getElementById('ffill').style.width  = fuel + '%';
+}
+
+function loop(){
+  requestAnimationFrame(loop);
+  c.clearRect(0,0,W,H);
+  drawBg();
+  if(state === 'play'){
+    stepCar();
+    tickPars();
+    checkItems();
+    camX += (car.x - W*0.3 - camX) * 0.1;
+    if(camX < 0) camX = 0;
+    if(!car.dead) dist = Math.max(dist, car.x/10);
+    if(dist > best){ best = dist; localStorage.setItem('hcr_pro_best', best); }
+    updateHUD();
+    if(car.dead){
+      car.dTick++;
+      if(car.dTick > 80){
+        state = 'over';
+        document.getElementById('oScr').textContent = Math.floor(dist) + ' m';
+        document.getElementById('oOver').classList.remove('h');
+      }
+    }
+  }
+  drawGround();
+  drawItems();
+  for(const p of pars){
+    c.save(); c.translate(-camX,0);
+    c.globalAlpha = p.life; c.beginPath(); c.arc(p.x, p.y, p.r, 0, Math.PI*2); c.fillStyle = p.col; c.fill();
+    c.restore();
+  }
+  if(state !== 'start') drawCar();
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
+

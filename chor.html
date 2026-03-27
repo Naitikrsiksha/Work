@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raja Mantri Chor Sipahi - Ultimate Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background-color: #f4f1ea;
+            background-image: linear-gradient(#9198e5 1px, transparent 1px);
+            background-size: 100% 2em;
+            font-family: 'Kalam', cursive;
+            color: #2c3e50;
+            padding: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        body::before {
+            content: ''; position: fixed; top: 0; bottom: 0; left: 30px; width: 2px;
+            background-color: #ff7e67; z-index: -1;
+        }
+
+        h1 {
+            text-align: center; font-size: 2.5em; color: #d35400; margin: 10px 0 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1); font-family: 'Caveat', cursive;
+        }
+
+        /* Screens */
+        .screen { display: none; flex-direction: column; align-items: center; }
+        .screen.active { display: flex; }
+
+        /* Buttons & Inputs */
+        button {
+            background-color: #27ae60; color: white; border: none; padding: 12px 25px;
+            font-size: 1.3em; font-family: 'Kalam', cursive; border-radius: 30px;
+            cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: all 0.2s;
+            margin: 10px;
+        }
+        button:hover { background-color: #2ecc71; transform: translateY(-2px); }
+        button:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        button.btn-alt { background-color: #2980b9; }
+        button.btn-alt:hover { background-color: #3498db; }
+        
+        input {
+            font-family: 'Kalam', cursive; font-size: 1.2em; padding: 8px 15px;
+            border: 2px solid #bdc3c7; border-radius: 10px; margin: 5px 0; width: 100%;
+            max-width: 300px; text-align: center; outline: none; background: #fffdf5;
+        }
+        input:focus { border-color: #2980b9; box-shadow: 0 0 5px rgba(41, 128, 185, 0.5); }
+
+        .menu-box {
+            background: rgba(255, 255, 255, 0.9); border: 2px dashed #34495e; border-radius: 15px;
+            padding: 20px; text-align: center; width: 100%; max-width: 500px; margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Status Box */
+        #status-box {
+            background: rgba(255, 255, 255, 0.95); border: 2px dashed #e74c3c; border-radius: 10px;
+            padding: 15px; text-align: center; font-size: 1.4em; margin-bottom: 20px;
+            min-height: 80px; width: 100%; color: #c0392b; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Pool Area */
+        #pool-area {
+            display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;
+            padding: 20px; background: rgba(0,0,0,0.05); border-radius: 15px; border: 1px solid #ccc; width: 100%;
+        }
+
+        /* Players Cards Area */
+        .cards-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 30px; width: 100%; }
+        .purji-wrap { text-align: center; display: flex; flex-direction: column; align-items: center; width: 90px; }
+        .purji { width: 80px; height: 100px; perspective: 1000px; cursor: pointer; margin-bottom: 5px; }
+        .purji-inner { width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; position: relative; }
+        .purji.flipped .purji-inner { transform: rotateY(180deg); }
+        .purji-front, .purji-back {
+            width: 100%; height: 100%; position: absolute; backface-visibility: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 8px; box-shadow: 2px 4px 8px rgba(0,0,0,0.2); font-family: 'Caveat', cursive;
+        }
+        .purji-front {
+            background: #fffdf5; border: 1px solid #dcdcdc;
+            background-image: linear-gradient(45deg, transparent 48%, rgba(0,0,0,0.1) 50%, transparent 52%),
+                              linear-gradient(-45deg, transparent 48%, rgba(0,0,0,0.1) 50%, transparent 52%);
+            background-size: 10px 10px; color: #333; font-size: 1em;
+        }
+        .purji-back { background: #fffde7; border: 2px solid #f1c40f; transform: rotateY(180deg); }
+        .purji-back .role { font-size: 1.1em; font-weight: bold; color: #e74c3c; line-height: 1; }
+        .purji-back .pts { font-size: 1em; color: #27ae60; margin-top: 5px; }
+        
+        .player-name { font-size: 1.1em; font-weight: bold; color: #2980b9; background: #fff; padding: 2px 5px; border-radius: 8px; border: 1px solid #bdc3c7; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .purji.glow { box-shadow: 0 0 15px #f1c40f, 0 0 5px #f39c12; border: 2px solid #f1c40f; border-radius: 8px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* Score Table */
+        .score-board { background: white; border: 2px solid #bdc3c7; border-radius: 10px; padding: 15px; overflow-x: auto; width: 100%; margin-bottom: 50px;}
+        table { width: 100%; border-collapse: collapse; text-align: center; }
+        th, td { border: 1px solid #bdc3c7; padding: 8px; font-size: 1.1em; }
+        th { background-color: #ecf0f1; color: #2c3e50; }
+        .total-row { font-weight: bold; background-color: #fdfae5; font-size: 1.2em; color: #d35400; }
+        
+        .hidden { display: none !important; }
+
+        /* Modals */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            display: flex; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(4px);
+        }
+        .modal {
+            background: #fff; padding: 25px; border-radius: 15px; text-align: center; width: 90%; max-width: 350px; font-family: 'Kalam', cursive; border: 4px solid #f1c40f;
+        }
+        .modal h2 { color: #e74c3c; font-size: 2em; margin-bottom: 10px; }
+        .modal p { font-size: 1.3em; margin-bottom: 20px; line-height: 1.4; }
+        .highlight { color: #2980b9; font-weight: bold; font-size: 1.2em; }
+        
+        .secret-role-reveal { font-size: 3em; margin: 15px 0; color: #d35400; font-family: 'Caveat', cursive;}
+    </style>
+</head>
+<body>
+
+    <h1>📝 Raja Mantri Chor Sipahi</h1>
+
+    <!-- MAIN MENU -->
+    <div id="screen-menu" class="screen active">
+        <div class="menu-box">
+            <h2>Mode Select Karein</h2>
+            <p style="margin-bottom: 15px; color:#7f8c8d;">Kaise khelna chahte hain?</p>
+            <button onclick="setupMode('bot5')">🧑 vs 🤖 (Computer ke sath)</button>
+            <button onclick="setupMode('pass5')" class="btn-alt">🧑‍🤝‍🧑 5 Players (Dosto ke sath + Khali)</button>
+            <button onclick="setupMode('pass4')" class="btn-alt">🧑‍🤝‍🧑 4 Players (Classic Bina Khali)</button>
+        </div>
+    </div>
+
+    <!-- NAME ENTRY SCREEN -->
+    <div id="screen-names" class="screen">
+        <div class="menu-box">
+            <h2 id="names-title">Naam Likhein</h2>
+            <div id="name-inputs"></div>
+            <button onclick="startGame()">Game Shuru Karein 🚀</button>
+            <button onclick="showScreen('screen-menu')" style="background:#e74c3c;">Wapas Jayein</button>
+        </div>
+    </div>
+
+    <!-- GAME BOARD SCREEN -->
+    <div id="screen-game" class="screen">
+        <div id="status-box">Status Here</div>
+
+        <button id="btn-start-round" onclick="startNewRound()">Naya Round Baanto 🎲</button>
+
+        <!-- Pool Area (Picking Chits) -->
+        <div id="pool-area" class="hidden"></div>
+
+        <!-- Players Area -->
+        <div class="cards-container hidden" id="cards-container"></div>
+
+        <!-- Score Table -->
+        <div class="score-board">
+            <table id="score-table">
+                <thead>
+                    <tr id="table-head">
+                        <th>Rnd</th>
+                        <!-- Names injected here -->
+                    </tr>
+                </thead>
+                <tbody id="score-body"></tbody>
+                <tfoot>
+                    <tr class="total-row" id="table-foot">
+                        <td>Total</td>
+                        <!-- Totals injected here -->
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <button onclick="showScreen('screen-menu')" style="background:#e74c3c; font-size: 1em;">Naya Game / Main Menu</button>
+    </div>
+
+    <!-- Modals -->
+    <!-- Secret Role Reveal Modal (For Pass & Play) -->
+    <div id="secret-modal" class="overlay hidden">
+        <div class="modal">
+            <h2 id="secret-player-name">Player Name</h2>
+            <p>Aapki purji hai:</p>
+            <div id="secret-content">
+                <button onclick="revealSecretRole()" style="background:#e67e22;">Tap to Reveal 👀</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Standard Alert Modal -->
+    <div id="alert-modal" class="overlay hidden">
+        <div class="modal">
+            <h2 id="modal-title">Result</h2>
+            <p id="modal-desc">Details here</p>
+            <button onclick="document.getElementById('alert-modal').classList.add('hidden')">Theek Hai!</button>
+        </div>
+    </div>
+
+<script>
+    // --- Global Variables ---
+    let gameMode = ''; // 'bot5', 'pass5', 'pass4'
+    let numPlayers = 5;
+    let players = [];
+    let rolesConfig = [];
+    let availableRoles = [];
+    let roundCount = 0;
+    let gameState = 'waiting'; 
+    let currentPickerIndex = 0; 
+    let secretRoleTemp = null; // Stores role for revealing in Pass&Play
+
+    const ROLES_ALL = {
+        raja: { id: 'raja', name: 'Raja', pts: 1000, icon: '👑' },
+        mantri: { id: 'mantri', name: 'Mantri', pts: 800, icon: '👨‍⚖️' },
+        sipahi: { id: 'sipahi', name: 'Sipahi', pts: 500, icon: '👮' },
+        chor: { id: 'chor', name: 'Chor', pts: 0, icon: '🦹' },
+        khali: { id: 'khali', name: 'Khali', pts: 0, icon: '📄' }
+    };
+
+    // --- UI Helpers ---
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function shuffle(array) {
+        let cur = array.length, rnd;
+        while (cur != 0) {
+            rnd = Math.floor(Math.random() * cur); cur--;
+            [array[cur], array[rnd]] = [array[rnd], array[cur]];
+        }
+        return array;
+    }
+
+    // --- Setup Phase ---
+    function setupMode(mode) {
+        gameMode = mode;
+        numPlayers = mode === 'pass4' ? 4 : 5;
+        
+        const inputsDiv = document.getElementById('name-inputs');
+        inputsDiv.innerHTML = '';
+
+        if (mode === 'bot5') {
+            inputsDiv.innerHTML = `<input type="text" id="p0" placeholder="Aapka Naam (e.g. Naitik)" value="Naitik">`;
+            // Bots are predefined
+        } else {
+            for (let i = 0; i < numPlayers; i++) {
+                inputsDiv.innerHTML += `<input type="text" id="p${i}" placeholder="Player ${i+1} Name">`;
+            }
+        }
+        showScreen('screen-names');
+    }
+
+    function startGame() {
+        players = [];
+        roundCount = 0;
+        document.getElementById('score-body').innerHTML = '';
+
+        // Configure Roles based on mode
+        rolesConfig = [ROLES_ALL.raja, ROLES_ALL.mantri, ROLES_ALL.sipahi, ROLES_ALL.chor];
+        if (numPlayers === 5) rolesConfig.push(ROLES_ALL.khali);
+
+        // Build Players Array
+        for (let i = 0; i < numPlayers; i++) {
+            let pName = "";
+            let isBot = false;
+
+            if (gameMode === 'bot5') {
+                if (i === 0) {
+                    pName = document.getElementById('p0').value.trim() || "Naitik";
+                } else {
+                    const botNames = ["Raju", "Shyam", "Baburao", "Pappu"];
+                    pName = botNames[i-1];
+                    isBot = true;
+                }
+            } else {
+                pName = document.getElementById(`p${i}`).value.trim() || `Player ${i+1}`;
+            }
+
+            players.push({ id: i, name: pName, isBot: isBot, totalScore: 0, role: null, roundScore: 0 });
+        }
+
+        buildScoreTable();
+        showScreen('screen-game');
+        document.getElementById('btn-start-round').style.display = 'inline-block';
+        document.getElementById('status-box').innerText = "Game shuru karne ke liye 'Naya Round Baanto' pe click karein.";
+        document.getElementById('pool-area').classList.add('hidden');
+        document.getElementById('cards-container').classList.add('hidden');
+    }
+
+    function buildScoreTable() {
+        const head = document.getElementById('table-head');
+        const foot = document.getElementById('table-foot');
+        head.innerHTML = `<th>Rnd</th>`;
+        foot.innerHTML = `<td>Total</td>`;
+        
+        players.forEach(p => {
+            head.innerHTML += `<th>${p.name}</th>`;
+            foot.innerHTML += `<td id="tot-${p.id}">0</td>`;
+        });
+    }
+
+    // --- Round Logic ---
+    function startNewRound() {
+        document.getElementById('btn-start-round').style.display = 'none';
+        document.getElementById('cards-container').classList.add('hidden');
+        document.getElementById('pool-area').classList.remove('hidden');
+        
+        availableRoles = shuffle([...rolesConfig]);
+        gameState = 'picking';
+        currentPickerIndex = 0;
+
+        renderPool();
+        updatePickingStatus();
+    }
+
+    function renderPool() {
+        const pool = document.getElementById('pool-area');
+        pool.innerHTML = '';
+        availableRoles.forEach((role, i) => {
+            const chit = document.createElement('div');
+            chit.className = 'purji';
+            chit.innerHTML = `<div class="purji-inner"><div class="purji-front">Purji</div></div>`;
+            chit.onclick = () => handleChitPick(i);
+            pool.appendChild(chit);
+        });
+    }
+
+    function updatePickingStatus() {
+        if (currentPickerIndex >= numPlayers) {
+            finishPickingPhase();
+            return;
+        }
+
+        const cp = players[currentPickerIndex];
+        if (cp.isBot) {
+            // Bot picks automatically
+            document.getElementById('status-box').innerHTML = `${cp.name} 🤖 apni purji utha raha hai...`;
+            setTimeout(() => {
+                const randomIdx = Math.floor(Math.random() * availableRoles.length);
+                cp.role = availableRoles.splice(randomIdx, 1)[0];
+                currentPickerIndex++;
+                renderPool();
+                updatePickingStatus();
+            }, 800);
+        } else {
+            document.getElementById('status-box').innerHTML = `<b>${cp.name}</b>, Table se apni ek purji uthao! 👆`;
+        }
+    }
+
+    function handleChitPick(chitIndex) {
+        if (gameState !== 'picking') return;
+        const cp = players[currentPickerIndex];
+        if (cp.isBot) return; // Bots are auto handled
+
+        cp.role = availableRoles.splice(chitIndex, 1)[0];
+        
+        if (gameMode !== 'bot5') {
+            // Pass and Play: Show secret modal
+            secretRoleTemp = cp.role;
+            document.getElementById('secret-player-name').innerText = cp.name;
+            document.getElementById('secret-content').innerHTML = `<button onclick="revealSecretRole()" style="background:#e67e22; font-size:1.2em; padding: 15px;">Tap to Reveal 👀</button>`;
+            document.getElementById('secret-modal').classList.remove('hidden');
+        } else {
+            // Bot mode (User is only human)
+            currentPickerIndex++;
+            renderPool();
+            updatePickingStatus();
+        }
+    }
+
+    // For Pass & Play Modal
+    function revealSecretRole() {
+        document.getElementById('secret-content').innerHTML = `
+            <div class="secret-role-reveal">${secretRoleTemp.icon} <br> ${secretRoleTemp.name}</div>
+            <button onclick="hideSecretRole()" style="background:#c0392b;">Hide & Pass 🤝</button>
+        `;
+    }
+
+    function hideSecretRole() {
+        document.getElementById('secret-modal').classList.add('hidden');
+        currentPickerIndex++;
+        renderPool();
+        updatePickingStatus();
+    }
+
+    // All chits picked
+    function finishPickingPhase() {
+        gameState = 'revealing';
+        document.getElementById('pool-area').classList.add('hidden');
+        renderPlayerCards();
+        document.getElementById('cards-container').classList.remove('hidden');
+        document.getElementById('status-box').innerHTML = "Sabne purjiyan utha li hain. Raja aur Mantri saamne aayen...";
+        setTimeout(revealRajaMantri, 1500);
+    }
+
+    function renderPlayerCards() {
+        const cont = document.getElementById('cards-container');
+        cont.innerHTML = '';
+        players.forEach(p => {
+            p.roundScore = 0;
+            const wrap = document.createElement('div');
+            wrap.className = 'purji-wrap';
+            
+            // Allow user to click their own card to peek in Pass&Play? 
+            // Better to keep it closed to avoid cheating, only Mantri can click others.
+            
+            wrap.innerHTML = `
+                <div class="purji" id="card-${p.id}" onclick="handlePlayerClick(${p.id})">
+                    <div class="purji-inner">
+                        <div class="purji-front">Folded</div>
+                        <div class="purji-back">
+                            <div style="font-size: 1.5em; margin-top:10px;">${p.role.icon}</div>
+                            <div class="role">${p.role.name}</div>
+                            <div class="pts" id="pts-lbl-${p.id}">? pts</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="player-name">${p.name}</div>
+            `;
+            cont.appendChild(wrap);
+        });
+
+        // In Bot mode, User (P0) can always see their card
+        if (gameMode === 'bot5') {
+            document.getElementById(`card-0`).classList.add('flipped');
+        }
+    }
+
+    function revealRajaMantri() {
+        let raja = players.find(p => p.role.id === 'raja');
+        let mantri = players.find(p => p.role.id === 'mantri');
+
+        document.getElementById(`card-${raja.id}`).classList.add('flipped');
+        document.getElementById(`card-${mantri.id}`).classList.add('flipped');
+
+        raja.roundScore = raja.role.pts;
+        document.getElementById(`pts-lbl-${raja.id}`).innerText = `${raja.roundScore} pts`;
+
+        gameState = 'guessing';
+        
+        let promptHTML = `👑 <b>Raja (${raja.name})</b>: "Mera Mantri kaun hai?"<br>👨‍⚖️ <b>Mantri (${mantri.name})</b>: "Main hazir hu!"<br><br>`;
+        promptHTML += `<b>${mantri.name}</b>, inme se <b>Chor 🦹</b> ko pakdo!`;
+        document.getElementById('status-box').innerHTML = promptHTML;
+
+        // Highlight suspects
+        players.forEach(p => {
+            if (p.id !== raja.id && p.id !== mantri.id) {
+                document.getElementById(`card-${p.id}`).classList.add('glow');
+            }
+        });
+
+        if (mantri.isBot) {
+            setTimeout(() => botGuesses(mantri), 3000);
+        }
+    }
+
+    function handlePlayerClick(targetId) {
+        if (gameState !== 'guessing') return;
+        
+        const mantri = players.find(p => p.role.id === 'mantri');
+        if (mantri.isBot) return; // If Mantri is a bot, user can't click for them
+
+        const target = players.find(p => p.id === targetId);
+        if (target.id === mantri.id || target.role.id === 'raja') return; // Can't click self or Raja
+
+        resolveGuess(mantri, target);
+    }
+
+    function botGuesses(mantri) {
+        const suspects = players.filter(p => p.role.id !== 'raja' && p.role.id !== 'mantri');
+        const target = suspects[Math.floor(Math.random() * suspects.length)];
+        resolveGuess(mantri, target);
+    }
+
+    function resolveGuess(mantri, target) {
+        gameState = 'resolved';
+        
+        // Remove glows
+        document.querySelectorAll('.purji').forEach(el => el.classList.remove('glow'));
+        
+        // Flip the target
+        document.getElementById(`card-${target.id}`).classList.add('flipped');
+
+        let chor = players.find(p => p.role.id === 'chor');
+        
+        // Handle defaults
+        players.forEach(p => {
+            if(p.role.id === 'sipahi') p.roundScore = p.role.pts;
+            if(p.role.id === 'khali') p.roundScore = p.role.pts;
+        });
+
+        let title = "";
+        let desc = "";
+
+        if (target.role.id === 'chor') {
+            mantri.roundScore = 800;
+            chor.roundScore = 0;
+            title = "Wah Mantri Ji! 🎉";
+            desc = `<span class="highlight">${mantri.name}</span> ne bilkul sahi pakda! <br>Chor (<span class="highlight">${chor.name}</span>) pakda gaya.<br>Mantri ko mile <b>800 pts</b>.`;
+        } else {
+            mantri.roundScore = 0;
+            chor.roundScore = 800;
+            title = "Dhokha! 🤦‍♂️";
+            desc = `<span class="highlight">${mantri.name}</span> ne galti se <span class="highlight">${target.name} (${target.role.name})</span> ko pakad liya!<br>Asli Chor (<span class="highlight">${chor.name}</span>) bhaag nikla aur usne <b>800 pts</b> le liye.`;
+        }
+
+        // Reveal all remaining
+        players.forEach(p => {
+            document.getElementById(`pts-lbl-${p.id}`).innerText = `${p.roundScore} pts`;
+            document.getElementById(`card-${p.id}`).classList.add('flipped');
+        });
+
+        setTimeout(() => {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerHTML = desc;
+            document.getElementById('alert-modal').classList.remove('hidden');
+            
+            updateScoreTable();
+            document.getElementById('btn-start-round').style.display = 'inline-block';
+            document.getElementById('status-box').innerText = "Round khatam! Agla round start karein.";
+        }, 1500);
+    }
+
+    function updateScoreTable() {
+        roundCount++;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>R${roundCount}</td>`;
+        
+        players.forEach(p => {
+            p.totalScore += p.roundScore;
+            tr.innerHTML += `<td>${p.roundScore}</td>`;
+            document.getElementById(`tot-${p.id}`).innerText = p.totalScore;
+        });
+        
+        document.getElementById('score-body').appendChild(tr);
+    }
+</script>
+</body>
+</html>
+
+
