@@ -2,26 +2,29 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game hub!!�</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Naitik AI v2.0</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --bg: #0f172a;
             --chat-bg: #1e293b;
             --primary: #00e5ff;
-            --user-msg: #334155;
-            --ai-msg: #0f172a;
+            --accent: #ff2d78;
+            --text: #ffffff;
         }
 
+        * { box-sizing: border-box; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg);
-            color: white;
+            color: var(--text);
             margin: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh; /* Mobile browser height fix */
             overflow: hidden;
         }
 
@@ -30,13 +33,14 @@
             padding: 15px 20px;
             background: var(--chat-bg);
             border-bottom: 2px solid var(--primary);
-            text-align: center;
-            font-weight: bold;
-            letter-spacing: 1px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
+            z-index: 10;
         }
+
+        .header span { font-weight: bold; letter-spacing: 1px; color: var(--primary); }
 
         /* Chat Container */
         #chat-container {
@@ -46,6 +50,7 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            padding-bottom: 150px; /* Space for fixed bottom UI */
             scroll-behavior: smooth;
         }
 
@@ -55,52 +60,65 @@
             border-radius: 15px;
             font-size: 15px;
             line-height: 1.5;
-            position: relative;
+            word-wrap: break-word;
         }
 
         .ai-message {
             align-self: flex-start;
             background: var(--chat-bg);
             border-bottom-left-radius: 2px;
-            border: 1px solid #334155;
+            border: 1px solid rgba(0, 229, 255, 0.3);
         }
 
         .user-message {
             align-self: flex-end;
             background: var(--primary);
             color: black;
-            font-weight: 500;
+            font-weight: 600;
             border-bottom-right-radius: 2px;
         }
 
-        /* Typing Dots Animation */
-        .typing {
-            font-style: italic;
-            font-size: 13px;
+        /* Fixed Bottom Area */
+        .bottom-ui {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 100;
+        }
+
+        .suggestions {
+            display: flex;
+            gap: 8px;
+            padding: 10px 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            background: var(--bg);
+        }
+        .suggestions::-webkit-scrollbar { display: none; }
+
+        .suggest-btn {
+            background: transparent;
+            border: 1px solid var(--primary);
             color: var(--primary);
-            margin-bottom: 10px;
-            display: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.3s;
         }
+        .suggest-btn:hover { background: var(--primary); color: black; }
 
-        /* Game Iframe Wrapper */
-        .game-wrapper {
-            width: 100%;
-            height: 500px;
-            border-radius: 15px;
-            overflow: hidden;
-            border: 2px solid var(--primary);
-            margin-top: 10px;
-            display: none;
-        }
-
-        iframe { width: 100%; height: 100%; border: none; }
-
-        /* Input Area */
         .input-area {
-            padding: 20px;
+            padding: 15px 20px;
             background: var(--chat-bg);
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
         input {
@@ -108,43 +126,63 @@
             background: #0f172a;
             border: 1px solid #334155;
             padding: 12px 15px;
-            border-radius: 10px;
+            border-radius: 12px;
             color: white;
             outline: none;
+            font-size: 16px; /* Prevents auto-zoom on iOS */
         }
-
         input:focus { border-color: var(--primary); }
 
         .send-btn {
             background: var(--primary);
             border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: bold;
-        }
-
-        /* Quick Suggestions Buttons */
-        .suggestions {
             display: flex;
-            gap: 8px;
-            padding: 0 20px 10px;
-            overflow-x: auto;
-            scrollbar-width: none;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-size: 18px;
         }
 
-        .suggest-btn {
-            background: transparent;
+        /* Game Card Styles */
+        .game-card {
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 10px;
+            text-align: center;
+            width: 100%;
+        }
+        .play-btn {
+            display: inline-block;
+            background: var(--primary);
+            color: black;
+            text-decoration: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        .play-btn:hover { transform: scale(1.05); background: #fff; }
+
+        .typing {
+            font-style: italic;
+            font-size: 13px;
             color: var(--primary);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            white-space: nowrap;
+            margin: 5px 20px;
+            display: none;
         }
 
-        .suggest-btn:hover { background: rgba(0, 229, 255, 0.1); }
+        /* Desktop Adjustments */
+        @media (min-width: 768px) {
+            #chat-container { width: 60%; margin: 0 auto; }
+            .bottom-ui { width: 60%; left: 20%; right: 20%; border-radius: 20px 20px 0 0; }
+        }
     </style>
 </head>
 <body>
@@ -161,18 +199,20 @@
         </div>
     </div>
 
-    <div id="status" class="typing" style="padding: 0 20px;"></div>
+    <div id="status" class="typing"></div>
 
-    <div class="suggestions">
-        <button class="suggest-btn" onclick="handleInput('How many games available?')">How many games available?</button>
-        <button class="suggest-btn" onclick="handleInput('Name them')">Name them</button>
-        <button class="suggest-btn" onclick="handleInput('Play Snake')">Play Snake 🐍</button>
-        <button class="suggest-btn" onclick="handleInput('Hill Climb Racer')">Hill Climb 🚗</button>
-    </div>
+    <div class="bottom-ui">
+        <div class="suggestions">
+            <button class="suggest-btn" onclick="handleInput('How many games available?')">Kitne games hain?</button>
+            <button class="suggest-btn" onclick="handleInput('Name them')">Naam batao</button>
+            <button class="suggest-btn" onclick="handleInput('Play Snake')">Snake 🐍</button>
+            <button class="suggest-btn" onclick="handleInput('Hill Climb Racer')">Hill Climb 🚗</button>
+        </div>
 
-    <div class="input-area">
-        <input type="text" id="userInput" placeholder="Search game or ask anything..." onkeypress="if(event.key === 'Enter') handleInput()">
-        <button class="send-btn" onclick="handleInput()"><i class="fas fa-paper-plane"></i></button>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Game search karein..." onkeypress="if(event.key === 'Enter') handleInput()">
+            <button class="send-btn" onclick="handleInput()"><i class="fas fa-paper-plane"></i></button>
+        </div>
     </div>
 
     <script>
@@ -180,20 +220,20 @@
         const statusEl = document.getElementById('status');
         const userInput = document.getElementById('userInput');
 
-        // Game Data Base
+        // Games Database (GitHub URLs use karein agar hosted hain)
         const games = [
-            { name: "Bubble Shooter", file: "bubbles.html", tags: ["bubble", "shoot", "rang", "color"] },
-            { name: "Raja Mantri Chor Sipahi", file: "chor.html", tags: ["raja", "mantri", "chor", "sipahi", "chits", "police"] },
-            { name: "Classic Snake", file: "snakeus.html", tags: ["snake", "apple", "nokia", "saanp"] },
-            { name: "Hill Climb Racer", file: "geminihill.html", tags: ["car", "hill", "climb", "racer", "pahaad"] },
-            { name: "Yuddh Bhoomi", file: "gunish.html", tags: ["war", "army", "gunish", "yuddh", "missile"] },
-            { name: "Sipahi Game", file: "sipahi.html", tags: ["sipahi", "police", "soldier"] }
+            { name: "Bubble Shooter", file: "bubbles.html", tags: ["bubble", "shoot"] },
+            { name: "Raja Mantri Chor Sipahi", file: "chor.html", tags: ["raja", "mantri", "chor"] },
+            { name: "Classic Snake", file: "snakeus.html", tags: ["snake", "saanp"] },
+            { name: "Hill Climb Racer", file: "geminihill.html", tags: ["car", "hill", "pahaad"] },
+            { name: "Yuddh Bhoomi", file: "gunish.html", tags: ["war", "army", "gunish"] },
+            { name: "Sipahi Game", file: "sipahi.html", tags: ["sipahi", "police"] }
         ];
 
-        function addMessage(text, type) {
+        function addMessage(html, type) {
             const div = document.createElement('div');
             div.className = `message ${type}-message`;
-            div.innerHTML = text;
+            div.innerHTML = html;
             chatContainer.appendChild(div);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             return div;
@@ -206,11 +246,9 @@
             userInput.value = "";
             addMessage(text, 'user');
 
-            // AI "Thinking" state
             statusEl.style.display = 'block';
             statusEl.innerText = "Naitik papa searching your search...";
 
-            // 3 Second delay as requested
             await new Promise(resolve => setTimeout(resolve, 3000));
             statusEl.style.display = 'none';
 
@@ -221,17 +259,12 @@
             let response = "";
             let foundGame = null;
 
-            // Logic for "How many games"
             if (query.includes("how many") || query.includes("kitne")) {
                 response = `Mere paas abhi total **${games.length}** games hain. Sab ek se badhkar ek hain!`;
             } 
-            // Logic for "Name them"
             else if (query.includes("name") || query.includes("naam") || query.includes("list")) {
-                response = "Ye rahi mere saare games ki list:<br><ul>" + 
-                           games.map(g => `<li>${g.name}</li>`).join("") + 
-                           "</ul>Aap kisi bhi game ka naam likhkar use shuru kar sakte hain.";
+                response = "Ye rahi list:<br>• " + games.map(g => g.name).join("<br>• ");
             }
-            // Search Game Logic
             else {
                 foundGame = games.find(g => 
                     query.includes(g.name.toLowerCase()) || 
@@ -239,21 +272,22 @@
                 );
 
                 if (foundGame) {
-                    response = `Naitik papa ko mil gaya! Hazir hai aapka pasandida game: **${foundGame.name}**. Kheliye aur enjoy kijiye! 🎮`;
+                    response = `Naitik papa ko mil gaya! Hazir hai **${foundGame.name}**. Niche button par click karke full screen me kheliye!`;
                 } else {
-                    response = "Maafi chahta hoon, mujhe aisa koi game nahi mila. Kya aap kuch aur search karna chahenge?";
+                    response = "Maafi chahta hoon, ye game mere database mein nahi mila. Kuch aur try karein?";
                 }
             }
 
             addMessage(response, 'ai');
 
-            // Agar game mil gaya toh iframe dikhao
             if (foundGame) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'game-wrapper';
-                wrapper.style.display = 'block';
-                wrapper.innerHTML = `<iframe src="${foundGame.file}"></iframe>`;
-                chatContainer.appendChild(wrapper);
+                const gameCard = document.createElement('div');
+                gameCard.className = 'game-card';
+                gameCard.innerHTML = `
+                    <div style="font-weight:bold; color:var(--primary); margin-bottom:5px;">🎮 ${foundGame.name}</div>
+                    <a href="${foundGame.file}" target="_blank" class="play-btn">PLAY NOW (FULL SCREEN)</a>
+                `;
+                chatContainer.appendChild(gameCard);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
         }
