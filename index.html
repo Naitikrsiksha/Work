@@ -303,7 +303,7 @@
 // GOOGLE SHEETS CONNECTION (Yahan Apna URL dalo!)
 // =============================================
 // Step 2 se jo Web App URL mila hai usko is quote " " ke andar paste karna hai.
-const GOOGLE_SHEET_URL = ""; 
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxIhEPs8L4GR6RU9OYoL-x4nbNubtTR2ePmwQMjU9C0pmJHRuZqBeNBdbVB4pRblV7Z5A/exec"; 
 
 // Background Effects
 (function(){ const l=document.getElementById('starsLayer'); let h=''; for(let i=0;i<190;i++){ const x=Math.random()*100,y=Math.random()*100,s=Math.random()*2.4+.4,d=Math.random()*5,dur=Math.random()*4+3,op=Math.random()*.7+.15; h+=`<div style="position:absolute;left:${x}%;top:${y}%;width:${s}px;height:${s}px;background:#fff;border-radius:50%;opacity:${op};animation:twinkle ${dur}s ${d}s infinite"></div>`;} l.innerHTML=h; const st=document.createElement('style'); st.textContent=`@keyframes twinkle{0%,100%{opacity:.1;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}`; document.head.appendChild(st);})();
