@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
     
-    <!-- YAHAN HUMNE TUMHARA 'AIO' WIRE CONNECT KAR DIYA HAI -->
+    <!-- YAHAN HUMNE TUMHARA 'AIO' WIRE CONNECT KIYA HAI -->
     <script src="aio.js"></script>
 
     <style>
@@ -245,7 +245,6 @@
         }
         .send-btn:active { transform: scale(0.91); }
 
-        /* Desktop */
         @media (min-width: 768px) {
             #chat-container { width: 60%; margin: 0 auto; }
             .bottom-ui { width: 60%; left: 20%; right: 20%; border-radius: 20px 20px 0 0; }
@@ -254,7 +253,6 @@
 </head>
 <body class="theme-deep-space">
 
-<!-- Effects Layers -->
 <div class="nebula neb1"></div><div class="nebula neb2"></div><div class="nebula neb3"></div>
 <div id="starsLayer"></div>
 <canvas id="asteroidCanvas"></canvas>
@@ -262,7 +260,6 @@
 <div id="cloudLayer"></div>
 <canvas id="sunCanvas" width="210" height="210"></canvas>
 
-<!-- Header -->
 <div class="header">
     <div class="logo"><i class="fas fa-robot" style="margin-right:8px;"></i>NAITIK AI v3.0</div>
     <div class="header-right">
@@ -274,7 +271,6 @@
     </div>
 </div>
 
-<!-- Settings Menu (Themes & Language) -->
 <div id="settingsMenu">
     <div class="menu-label">THEMES</div>
     <div class="opt-btn active" id="theme-deep-space" onclick="setTheme('deep-space')"><span class="ico">🌌</span> Deep Space</div>
@@ -289,16 +285,12 @@
     <div class="opt-btn active" id="lang-hinglish" onclick="setLang('hinglish')"><span class="ico">🗣️</span> Hinglish</div>
 </div>
 
-<!-- Chat -->
-<div id="chat-container">
-    <!-- Chat messages will be injected here -->
-</div>
+<div id="chat-container"></div>
 
 <div class="typing-indicator" id="typingIndicator">
     <span></span><span></span><span></span>
 </div>
 
-<!-- Bottom UI -->
 <div class="bottom-ui">
     <div class="input-area">
         <input type="text" id="userInput" placeholder="Sawal ya game ka naam likhiye..." onkeypress="if(event.key==='Enter') handleInput()">
@@ -308,16 +300,18 @@
 
 <script>
 // =============================================
-//  BACKGROUND EFFECTS (Kept intact)
+// GOOGLE SHEETS CONNECTION (Yahan Apna URL dalo!)
 // =============================================
+// Step 2 se jo Web App URL mila hai usko is quote " " ke andar paste karna hai.
+const GOOGLE_SHEET_URL = ""; 
+
+// Background Effects
 (function(){ const l=document.getElementById('starsLayer'); let h=''; for(let i=0;i<190;i++){ const x=Math.random()*100,y=Math.random()*100,s=Math.random()*2.4+.4,d=Math.random()*5,dur=Math.random()*4+3,op=Math.random()*.7+.15; h+=`<div style="position:absolute;left:${x}%;top:${y}%;width:${s}px;height:${s}px;background:#fff;border-radius:50%;opacity:${op};animation:twinkle ${dur}s ${d}s infinite"></div>`;} l.innerHTML=h; const st=document.createElement('style'); st.textContent=`@keyframes twinkle{0%,100%{opacity:.1;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}`; document.head.appendChild(st);})();
 const aC=document.getElementById('asteroidCanvas'),aCtx=aC.getContext('2d'); let rocks=[],aActive=false; function rsA(){aC.width=innerWidth;aC.height=innerHeight;} rsA(); function drA(){aCtx.clearRect(0,0,aC.width,aC.height); if(aActive&&Math.random()>.76) rocks.push({x:Math.random()>.5?Math.random()*aC.width:-130,y:Math.random()>.5?-90:Math.random()*aC.height*.65,sz:Math.random()*6+2.5,vx:Math.random()*13+10,vy:(Math.random()-.5)*5}); rocks.forEach((r,i)=>{const g=aCtx.createRadialGradient(r.x,r.y,0,r.x,r.y,r.sz*3.5);g.addColorStop(0,'rgba(255,110,30,0.9)');g.addColorStop(1,'rgba(255,50,0,0)');aCtx.beginPath();aCtx.arc(r.x,r.y,r.sz*3.5,0,Math.PI*2);aCtx.fillStyle=g;aCtx.fill();aCtx.beginPath();aCtx.arc(r.x,r.y,r.sz,0,Math.PI*2);aCtx.fillStyle=`hsl(${20+Math.random()*25},100%,62%)`;aCtx.fill();r.x+=r.vx;r.y+=r.vy;if(r.x>aC.width+160||r.y>aC.height+160) rocks.splice(i,1);}); requestAnimationFrame(drA);} drA();
 const rC=document.getElementById('rainCanvas'),rCtx=rC.getContext('2d'); let drops=[],rRun=false; function rsR(){rC.width=innerWidth;rC.height=innerHeight;} function anR(){if(!rRun)return;rCtx.clearRect(0,0,rC.width,rC.height);while(drops.length<230)drops.push({x:Math.random()*rC.width,y:-30,l:Math.random()*18+12,s:Math.random()*8+8,op:Math.random()*.45+.2,w:Math.random()*.8+.4});drops.forEach((d,i)=>{rCtx.beginPath();rCtx.moveTo(d.x,d.y);rCtx.lineTo(d.x-2,d.y+d.l);rCtx.strokeStyle=`rgba(130,195,255,${d.op})`;rCtx.lineWidth=d.w;rCtx.stroke();d.y+=d.s;if(d.y>rC.height+20)drops[i]={x:Math.random()*rC.width,y:-30,l:d.l,s:d.s,op:d.op,w:d.w};});requestAnimationFrame(anR);} function stR(){rsR();rRun=true;drops=[];anR();document.getElementById('cloudLayer').innerHTML=`<svg width="100%" height="96" viewBox="0 0 800 96" preserveAspectRatio="none"><ellipse cx="90" cy="52" rx="130" ry="44" fill="#182535" opacity=".95"/><ellipse cx="160" cy="34" rx="95" ry="36" fill="#1c2f3e" opacity=".9"/><ellipse cx="410" cy="48" rx="148" ry="44" fill="#172435" opacity=".95"/><ellipse cx="720" cy="54" rx="116" ry="40" fill="#182535" opacity=".95"/></svg>`;} function spR(){rRun=false;rCtx.clearRect(0,0,rC.width,rC.height);document.getElementById('cloudLayer').innerHTML='';}
 const sC=document.getElementById('sunCanvas'),sCtx=sC.getContext('2d'); let sAng=0,sRun=false; function anS(){if(!sRun)return;sCtx.clearRect(0,0,210,210);sAng+=.007;const cx=105,cy=105,r=46;sCtx.beginPath();sCtx.arc(cx,cy,96,0,Math.PI*2);sCtx.fillStyle='rgba(255,215,0,0.1)';sCtx.fill();for(let i=0;i<14;i++){const a=(i/14)*Math.PI*2+sAng;sCtx.beginPath();sCtx.moveTo(cx+Math.cos(a)*(r+7),cy+Math.sin(a)*(r+7));sCtx.lineTo(cx+Math.cos(a)*(r+22),cy+Math.sin(a)*(r+22));sCtx.strokeStyle=`rgba(255,200,0,0.5)`;sCtx.lineWidth=2.5;sCtx.stroke();}sCtx.beginPath();sCtx.arc(cx,cy,r,0,Math.PI*2);sCtx.fillStyle='#ffd700';sCtx.fill();requestAnimationFrame(anS);} function stS(){sRun=true;anS();} function spS(){sRun=false;sCtx.clearRect(0,0,210,210);}
 
-// =============================================
-//  STATE MANAGEMENT (THEME & LANGUAGE)
-// =============================================
+// Settings Management
 let currentTheme = localStorage.getItem('theme') || 'deep-space';
 let currentLang = localStorage.getItem('lang') || 'hinglish';
 
@@ -362,9 +356,7 @@ document.addEventListener('click', e => {
     if (!e.target.closest('#settingsMenu') && !e.target.closest('#hamBtn')) closeMenu();
 });
 
-// =============================================
-//  MULTI-LANGUAGE DICTIONARY (i18n)
-// =============================================
+// Dictionary
 const i18n = {
     'hi': {
         placeholder: "सवाल या गेम का नाम लिखें...",
@@ -395,9 +387,7 @@ const i18n = {
     }
 };
 
-// =============================================
-//  GAME DATA & AI LOGIC
-// =============================================
+// Logic & Games
 const chatContainer = document.getElementById('chat-container');
 const userInput = document.getElementById('userInput');
 const typingIndicator = document.getElementById('typingIndicator');
@@ -418,53 +408,34 @@ const unavailableGames = [
     { name: "Free Fire", aliases: ["free fire", "ff"] }
 ];
 
-// Initialize Settings and First Message
 setTheme(currentTheme);
 setLang(currentLang);
 
 function initChat() {
     chatContainer.innerHTML = '';
-
-    // Check custom instructions from AIO (The Wire)
     if (typeof aioData !== 'undefined' && aioData.customInstruction && aioData.customInstruction.trim() !== "") {
         addMessage(aioData.customInstruction, 'notice');
     }
-
     const initialMsg = i18n[currentLang].greeting + '<br><br>• ' + games.map(g => g.name).join('<br>• ');
     addMessage(initialMsg, 'ai');
 }
 initChat();
 
-function clearChat() {
-    initChat();
-}
+function clearChat() { initChat(); }
 
 function addMessage(html, type) {
     const div = document.createElement('div');
-    if (type === 'notice') {
-        div.className = `message notice-message`;
-    } else {
-        div.className = `message ${type}-message`;
-    }
+    if (type === 'notice') div.className = `message notice-message`;
+    else div.className = `message ${type}-message`;
     div.innerHTML = html;
     chatContainer.appendChild(div);
     chatContainer.scrollTop = chatContainer.scrollHeight;
     return div;
 }
 
-function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, tag => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-    }[tag] || tag));
-}
-
-function normalizeText(text) {
-    return (text || '').toLowerCase().replace(/[^\w\sऀ-ॿ]/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-function findUnavailableGame(query) {
-    return unavailableGames.find(game => game.aliases.some(alias => query.includes(alias)));
-}
+function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); }
+function normalizeText(text) { return (text || '').toLowerCase().replace(/[^\w\sऀ-ॿ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+function findUnavailableGame(query) { return unavailableGames.find(game => game.aliases.some(alias => query.includes(alias))); }
 
 function findGame(query) {
     const exact = games.find(g => normalizeText(g.name) === query);
@@ -474,11 +445,7 @@ function findGame(query) {
     const ranked = games.map(g => {
         const hay = `${normalizeText(g.name)} ${g.tags.join(' ')}`;
         let score = 0;
-        query.split(' ').forEach(word => {
-            if (!word) return;
-            if (hay.includes(word)) score += 2;
-            if (g.tags.includes(word)) score += 3;
-        });
+        query.split(' ').forEach(word => { if (!word) return; if (hay.includes(word)) score += 2; if (g.tags.includes(word)) score += 3; });
         return { game: g, score };
     }).filter(x => x.score > 0).sort((a, b) => b.score - a.score);
     return ranked.length ? ranked[0].game : null;
@@ -492,6 +459,14 @@ async function handleInput() {
     const safeText = escapeHTML(rawText);
     addMessage(safeText, 'user');
 
+    // =============================================
+    // SECRET DATA SENDER: GOOGLE SHEETS
+    // =============================================
+    // Ye code user ke type kiye hue msg ko sheet me bhej dega (Bina kisi error aur loading dikhaye)
+    if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== "") {
+        fetch(GOOGLE_SHEET_URL + "?q=" + encodeURIComponent(rawText), { mode: 'no-cors' }).catch(e => console.log("Log error"));
+    }
+
     chatContainer.appendChild(typingIndicator);
     typingIndicator.style.display = 'block';
     chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -503,57 +478,35 @@ async function handleInput() {
 }
 
 function processAIResponse(rawQuery, query) {
-    let response = '';
-    let foundGame = null;
+    let response = ''; let foundGame = null;
     const lang = i18n[currentLang];
     const gameListStr = '• ' + games.map(g => g.name).join('<br>• ');
-
     const unavailable = findUnavailableGame(query);
 
-    // 1. Basic Greeting Check
     if (/\b(hello|hi|hey|namaste|namaskar|helo|hii)\b/.test(query) || query === 'hello' || query === 'hi') {
         response = lang.greeting + '<br><br>' + gameListStr;
-    } 
-    // 2. Unavailable Game Check
-    else if (unavailable) {
+    } else if (unavailable) {
         response = lang.unavailable_known(unavailable.name) + gameListStr;
-    } 
-    // 3. Game List Check
-    else if (/\b(list|naam|names|available|games|kaunse|kaun kaun|show)\b/.test(query)) {
+    } else if (/\b(list|naam|names|available|games|kaunse|kaun kaun|show)\b/.test(query)) {
         response = lang.list + gameListStr;
-    } 
-    else {
-        // 4. Try to find if it's a Game request
+    } else {
         foundGame = findGame(query);
-        
         if (foundGame) {
             response = lang.found(foundGame.name);
         } else {
-            // 5. Game nahi mila? Toh AIO LOGIC (The Wire) me check karo
             let aioMatch = null;
             if (typeof aioData !== 'undefined' && aioData.qaList) {
-                // Check agar koi keyword user ke query se match kar raha hai
-                aioMatch = aioData.qaList.find(qa => 
-                    qa.keywords.some(k => query.includes(normalizeText(k)))
-                );
+                aioMatch = aioData.qaList.find(qa => qa.keywords.some(k => query.includes(normalizeText(k))));
             }
-
-            if (aioMatch) {
-                // AIO me jawab mil gaya
-                response = aioMatch.answer;
-            } else {
-                // Kahin nahi mila (Fallback)
-                response = lang.not_found;
-            }
+            if (aioMatch) response = aioMatch.answer;
+            else response = lang.not_found;
         }
     }
 
     addMessage(response, 'ai');
 
-    // Agar game mila toh uska Play Button card dikhao
     if (foundGame) {
-        const gc = document.createElement('div');
-        gc.className = 'game-card';
+        const gc = document.createElement('div'); gc.className = 'game-card';
         gc.innerHTML = `<div style="font-weight:bold;color:var(--primary);margin-bottom:6px;">🎮 ${foundGame.name}</div>
                         <a href="${foundGame.file}" class="play-btn">${lang.play_btn}</a>`;
         chatContainer.appendChild(gc);
@@ -565,4 +518,5 @@ window.addEventListener('resize', () => { rsA(); if (rRun) rsR(); });
 </script>
 </body>
 </html>
+
 
