@@ -3,296 +3,541 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Naitik AI v2.0</title>
+    <title>Naitik AI v3.0 - Game Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f172a;
-            --chat-bg: #1e293b;
+            --bg: #02040a;
+            --chat-bg: rgba(14, 22, 40, 0.88);
             --primary: #00e5ff;
             --accent: #ff2d78;
-            --text: #ffffff;
+            --text: #e2e8f0;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg);
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg);
             color: var(--text);
-            margin: 0;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            height: 100dvh; /* Mobile browser height fix */
+            height: 100dvh;
             overflow: hidden;
+            transition: background 0.8s;
         }
 
-        /* Header */
+        /* ===== NEBULA ===== */
+        .nebula {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            pointer-events: none;
+            z-index: 0;
+            animation: nebulaFloat 22s ease-in-out infinite alternate;
+        }
+        .neb1 { width: 420px; height: 420px; background: #1a0050; opacity: 0.13; top: -120px; left: -120px; }
+        .neb2 { width: 360px; height: 360px; background: #003845; opacity: 0.12; bottom: -60px; right: -80px; animation-delay: -9s; }
+        .neb3 { width: 240px; height: 240px; background: #250018; opacity: 0.11; top: 38%; left: 28%; animation-delay: -15s; }
+        @keyframes nebulaFloat {
+            from { transform: translate(0,0) scale(1); }
+            to   { transform: translate(22px,28px) scale(1.08); }
+        }
+        body.theme-simple .nebula,
+        body.theme-rain .nebula,
+        body.theme-sunny .nebula { display: none; }
+
+        /* ===== STARS & CANVAS ===== */
+        #starsLayer, #asteroidCanvas, #rainCanvas, #cloudLayer, #sunCanvas {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+        }
+        #asteroidCanvas { z-index: 1; }
+        #rainCanvas { z-index: 2; display: none; }
+        #cloudLayer { height: 96px; z-index: 3; display: none; }
+        #sunCanvas { top: -60px; right: -60px; width: 210px; height: 210px; z-index: 2; display: none; }
+        
+        body.theme-simple #starsLayer, body.theme-rain #starsLayer, body.theme-sunny #starsLayer { display: none; }
+        body.theme-simple #asteroidCanvas, body.theme-rain #asteroidCanvas, body.theme-sunny #asteroidCanvas { display: none; }
+        body.theme-rain #rainCanvas, body.theme-rain #cloudLayer { display: block; }
+        body.theme-sunny #sunCanvas { display: block; }
+
+        /* ===== HEADER ===== */
         .header {
-            padding: 15px 20px;
-            background: var(--chat-bg);
+            z-index: 20; padding: 14px 16px;
+            background: rgba(8,13,28,0.96);
             border-bottom: 2px solid var(--primary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
+            backdrop-filter: blur(18px);
+            transition: border-color 0.5s;
             flex-shrink: 0;
-            z-index: 10;
         }
+        .logo {
+            font-family: 'Orbitron'; font-weight: 900; font-size: 15px;
+            color: var(--primary); letter-spacing: 2px;
+            text-shadow: 0 0 16px var(--primary), 0 0 38px rgba(0,229,255,0.28);
+        }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .status-badge { font-size: 10px; color: #00ff88; }
+        .header-btn {
+            background: none; border: none; color: rgba(226,232,240,0.5);
+            font-size: 16px; cursor: pointer; padding: 4px; transition: color 0.3s;
+        }
+        .header-btn:hover { color: var(--accent); }
 
-        .header span { font-weight: bold; letter-spacing: 1px; color: var(--primary); }
+        /* ===== HAMBURGER ===== */
+        .ham-btn {
+            width: 36px; height: 36px;
+            background: rgba(0,229,255,0.07);
+            border: 1px solid var(--primary); border-radius: 8px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            gap: 5px; cursor: pointer; padding: 7px; transition: background 0.25s;
+        }
+        .ham-btn span { width: 100%; height: 2px; background: var(--primary); border-radius: 2px; display: block; }
+        .ham-btn:active { background: rgba(0,229,255,0.18); }
 
-        /* Chat Container */
+        /* ===== SETTINGS MENU (Themes & Language) ===== */
+        #settingsMenu {
+            position: fixed; top: 62px; right: 12px; z-index: 200;
+            background: rgba(6,12,26,0.97);
+            border: 1px solid var(--primary); border-radius: 14px;
+            padding: 12px; min-width: 200px;
+            display: none; flex-direction: column; gap: 5px;
+            backdrop-filter: blur(18px);
+            box-shadow: 0 8px 40px rgba(0,229,255,0.18);
+            animation: menuDrop 0.22s ease-out;
+            max-height: 80vh; overflow-y: auto;
+        }
+        #settingsMenu.open { display: flex; }
+        @keyframes menuDrop {
+            from { opacity:0; transform:translateY(-10px) scale(0.95); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+        .menu-label {
+            font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4);
+            letter-spacing: 1px; margin: 8px 0 4px 4px; font-family: 'Orbitron';
+        }
+        .menu-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 6px 0; }
+        
+        .opt-btn {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-radius: 10px;
+            cursor: pointer; font-size: 14px; font-weight: 600;
+            color: var(--text); transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .opt-btn:hover { background: rgba(255,255,255,0.07); }
+        .opt-btn.active { border-color: var(--primary); background: rgba(0,229,255,0.08); color: var(--primary); }
+        .opt-btn .ico { font-size: 17px; width: 22px; text-align: center; }
+
+        /* ===== CHAT CONTAINER ===== */
         #chat-container {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding-bottom: 150px; /* Space for fixed bottom UI */
-            scroll-behavior: smooth;
+            flex: 1; padding: 18px 15px 120px;
+            overflow-y: auto; display: flex; flex-direction: column;
+            gap: 14px; z-index: 5; scroll-behavior: smooth;
         }
+        #chat-container::-webkit-scrollbar { width: 4px; }
+        #chat-container::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.2); border-radius: 2px; }
 
         .message {
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 15px;
-            font-size: 15px;
-            line-height: 1.5;
-            word-wrap: break-word;
+            max-width: 85%; padding: 12px 16px;
+            border-radius: 15px; font-size: 15px;
+            line-height: 1.5; word-wrap: break-word;
+            animation: msgIn 0.3s ease-out;
         }
+        @keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
         .ai-message {
             align-self: flex-start;
-            background: var(--chat-bg);
-            border-bottom-left-radius: 2px;
-            border: 1px solid rgba(0, 229, 255, 0.3);
+            background: rgba(14,22,42,0.88);
+            border: 1px solid rgba(0,229,255,0.35);
+            border-bottom-left-radius: 3px;
+            box-shadow: 0 3px 18px rgba(0,229,255,0.07);
         }
-
         .user-message {
             align-self: flex-end;
-            background: var(--primary);
-            color: black;
-            font-weight: 600;
-            border-bottom-right-radius: 2px;
+            background: var(--primary); color: #000;
+            font-weight: 700; border-bottom-right-radius: 3px;
+            box-shadow: 0 3px 18px rgba(0,229,255,0.28);
         }
 
-        /* Fixed Bottom Area */
-        .bottom-ui {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--bg);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: env(safe-area-inset-bottom);
-            z-index: 100;
-        }
-
-        .suggestions {
-            display: flex;
-            gap: 8px;
-            padding: 10px 20px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            background: var(--bg);
-        }
-        .suggestions::-webkit-scrollbar { display: none; }
-
-        .suggest-btn {
-            background: transparent;
+        /* Game Card */
+        .game-card {
+            background: rgba(0,0,0,0.4);
             border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: 0.3s;
+            border-radius: 13px; padding: 15px;
+            margin-top: 8px; text-align: center; width: 100%;
+            box-shadow: 0 4px 24px rgba(0,229,255,0.1);
         }
-        .suggest-btn:hover { background: var(--primary); color: black; }
+        .play-btn {
+            display: inline-block; background: var(--primary);
+            color: #000; text-decoration: none;
+            padding: 10px 26px; border-radius: 9px;
+            font-weight: 700; margin-top: 10px;
+            font-family: 'Orbitron'; font-size: 13px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(0,229,255,0.3);
+        }
+        .play-btn:hover { transform: scale(1.05); }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none; align-self: flex-start;
+            background: rgba(14,22,42,0.88);
+            border: 1px solid rgba(0,229,255,0.35);
+            border-radius: 15px; border-bottom-left-radius: 3px;
+            padding: 12px 16px; margin-bottom: 14px; z-index: 5;
+        }
+        .typing-indicator span {
+            display: inline-block; width: 8px; height: 8px;
+            background-color: var(--primary); border-radius: 50%; margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* ===== BOTTOM UI ===== */
+        .bottom-ui {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(10,16,32,0.97);
+            border-top: 1px solid rgba(0,229,255,0.2);
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 50; backdrop-filter: blur(18px);
+        }
 
         .input-area {
-            padding: 15px 20px;
-            background: var(--chat-bg);
-            display: flex;
-            gap: 10px;
-            align-items: center;
+            padding: 14px;
+            display: flex; gap: 10px; align-items: center;
         }
 
         input {
-            flex: 1;
-            background: #0f172a;
-            border: 1px solid #334155;
-            padding: 12px 15px;
-            border-radius: 12px;
-            color: white;
-            outline: none;
-            font-size: 16px; /* Prevents auto-zoom on iOS */
+            flex: 1; background: rgba(0,0,0,0.55);
+            border: 1px solid rgba(0,229,255,0.25);
+            padding: 14px 18px; border-radius: 12px;
+            color: #fff; font-size: 16px;
+            font-family: 'Rajdhani'; outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        input:focus { border-color: var(--primary); }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,229,255,0.1); }
+        input::placeholder { color: rgba(226,232,240,0.38); }
 
         .send-btn {
-            background: var(--primary);
-            border: none;
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: black;
-            font-size: 18px;
+            width: 50px; height: 50px; border-radius: 12px; border: none;
+            background: var(--primary); color: #000;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; cursor: pointer; flex-shrink: 0;
+            box-shadow: 0 4px 18px rgba(0,229,255,0.28);
+            transition: transform 0.15s;
         }
+        .send-btn:active { transform: scale(0.91); }
 
-        /* Game Card Styles */
-        .game-card {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--primary);
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 10px;
-            text-align: center;
-            width: 100%;
-        }
-        .play-btn {
-            display: inline-block;
-            background: var(--primary);
-            color: black;
-            text-decoration: none;
-            padding: 10px 25px;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: 0.3s;
-        }
-        .play-btn:hover { transform: scale(1.05); background: #fff; }
-
-        .typing {
-            font-style: italic;
-            font-size: 13px;
-            color: var(--primary);
-            margin: 5px 20px;
-            display: none;
-        }
-
-        /* Desktop Adjustments */
+        /* Desktop */
         @media (min-width: 768px) {
             #chat-container { width: 60%; margin: 0 auto; }
             .bottom-ui { width: 60%; left: 20%; right: 20%; border-radius: 20px 20px 0 0; }
         }
     </style>
 </head>
-<body>
+<body class="theme-deep-space">
 
-    <div class="header">
-        <span><i class="fas fa-robot"></i> NAITIK AI v2.0</span>
-        <button onclick="location.reload()" style="background:none; border:none; color:white; cursor:pointer;"><i class="fas fa-redo"></i></button>
-    </div>
+<!-- Effects Layers -->
+<div class="nebula neb1"></div><div class="nebula neb2"></div><div class="nebula neb3"></div>
+<div id="starsLayer"></div>
+<canvas id="asteroidCanvas"></canvas>
+<canvas id="rainCanvas"></canvas>
+<div id="cloudLayer"></div>
+<canvas id="sunCanvas" width="210" height="210"></canvas>
 
-    <div id="chat-container">
-        <div class="message ai-message">
-            Hello! Main Game hub AI hoon. Main aapko games dhundhne aur khelne me help kar sakta hoon. <br><br>
-            Aap mujhse puch sakte hain: "Kaunse games hain?" ya kisi game ka naam likh sakte hain.
+<!-- Header -->
+<div class="header">
+    <div class="logo"><i class="fas fa-robot" style="margin-right:8px;"></i>NAITIK AI v3.0</div>
+    <div class="header-right">
+        <div class="status-badge"><i class="fas fa-circle"></i> LIVE</div>
+        <button class="header-btn" onclick="clearChat()" title="Clear Chat"><i class="fas fa-broom"></i></button>
+        <div class="ham-btn" id="hamBtn" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
         </div>
     </div>
+</div>
 
-    <div id="status" class="typing"></div>
+<!-- Settings Menu (Themes & Language) -->
+<div id="settingsMenu">
+    <div class="menu-label">THEMES</div>
+    <div class="opt-btn active" id="theme-deep-space" onclick="setTheme('deep-space')"><span class="ico">🌌</span> Deep Space</div>
+    <div class="opt-btn" id="theme-simple" onclick="setTheme('simple')"><span class="ico">⚡</span> Simple UI</div>
+    <div class="opt-btn" id="theme-rain" onclick="setTheme('rain')"><span class="ico">🌧️</span> Rainy Season</div>
+    <div class="opt-btn" id="theme-sunny" onclick="setTheme('sunny')"><span class="ico">🌞</span> Sunny Day</div>
+    
+    <div class="menu-divider"></div>
+    <div class="menu-label">LANGUAGE</div>
+    <div class="opt-btn" id="lang-hi" onclick="setLang('hi')"><span class="ico">🇮🇳</span> Hindi</div>
+    <div class="opt-btn" id="lang-en" onclick="setLang('en')"><span class="ico">🇬🇧</span> English</div>
+    <div class="opt-btn active" id="lang-hinglish" onclick="setLang('hinglish')"><span class="ico">🗣️</span> Hinglish</div>
+</div>
 
-    <div class="bottom-ui">
-        <div class="suggestions">
-            <button class="suggest-btn" onclick="handleInput('How many games available?')">Kitne games hain?</button>
-            <button class="suggest-btn" onclick="handleInput('Name them')">Naam batao</button>
-            <button class="suggest-btn" onclick="handleInput('Play Snake')">Snake 🐍</button>
-            <button class="suggest-btn" onclick="handleInput('Hill Climb Racer')">Hill Climb 🚗</button>
-        </div>
+<!-- Chat -->
+<div id="chat-container">
+    <!-- Initial Greeting will be injected here based on language -->
+</div>
 
-        <div class="input-area">
-            <input type="text" id="userInput" placeholder="Game search karein..." onkeypress="if(event.key === 'Enter') handleInput()">
-            <button class="send-btn" onclick="handleInput()"><i class="fas fa-paper-plane"></i></button>
-        </div>
+<div class="typing-indicator" id="typingIndicator">
+    <span></span><span></span><span></span>
+</div>
+
+<!-- Bottom UI (No suggestions, No Mic) -->
+<div class="bottom-ui">
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Game naam likhiye..." onkeypress="if(event.key==='Enter') handleInput()">
+        <button class="send-btn" onclick="handleInput()"><i class="fas fa-paper-plane"></i></button>
     </div>
+</div>
 
-    <script>
-        const chatContainer = document.getElementById('chat-container');
-        const statusEl = document.getElementById('status');
-        const userInput = document.getElementById('userInput');
+<script>
+// =============================================
+//  BACKGROUND EFFECTS (Kept intact)
+// =============================================
+(function(){ const l=document.getElementById('starsLayer'); let h=''; for(let i=0;i<190;i++){ const x=Math.random()*100,y=Math.random()*100,s=Math.random()*2.4+.4,d=Math.random()*5,dur=Math.random()*4+3,op=Math.random()*.7+.15; h+=`<div style="position:absolute;left:${x}%;top:${y}%;width:${s}px;height:${s}px;background:#fff;border-radius:50%;opacity:${op};animation:twinkle ${dur}s ${d}s infinite"></div>`;} l.innerHTML=h; const st=document.createElement('style'); st.textContent=`@keyframes twinkle{0%,100%{opacity:.1;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}`; document.head.appendChild(st);})();
+const aC=document.getElementById('asteroidCanvas'),aCtx=aC.getContext('2d'); let rocks=[],aActive=false; function rsA(){aC.width=innerWidth;aC.height=innerHeight;} rsA(); function drA(){aCtx.clearRect(0,0,aC.width,aC.height); if(aActive&&Math.random()>.76) rocks.push({x:Math.random()>.5?Math.random()*aC.width:-130,y:Math.random()>.5?-90:Math.random()*aC.height*.65,sz:Math.random()*6+2.5,vx:Math.random()*13+10,vy:(Math.random()-.5)*5}); rocks.forEach((r,i)=>{const g=aCtx.createRadialGradient(r.x,r.y,0,r.x,r.y,r.sz*3.5);g.addColorStop(0,'rgba(255,110,30,0.9)');g.addColorStop(1,'rgba(255,50,0,0)');aCtx.beginPath();aCtx.arc(r.x,r.y,r.sz*3.5,0,Math.PI*2);aCtx.fillStyle=g;aCtx.fill();aCtx.beginPath();aCtx.arc(r.x,r.y,r.sz,0,Math.PI*2);aCtx.fillStyle=`hsl(${20+Math.random()*25},100%,62%)`;aCtx.fill();r.x+=r.vx;r.y+=r.vy;if(r.x>aC.width+160||r.y>aC.height+160) rocks.splice(i,1);}); requestAnimationFrame(drA);} drA();
+const rC=document.getElementById('rainCanvas'),rCtx=rC.getContext('2d'); let drops=[],rRun=false; function rsR(){rC.width=innerWidth;rC.height=innerHeight;} function anR(){if(!rRun)return;rCtx.clearRect(0,0,rC.width,rC.height);while(drops.length<230)drops.push({x:Math.random()*rC.width,y:-30,l:Math.random()*18+12,s:Math.random()*8+8,op:Math.random()*.45+.2,w:Math.random()*.8+.4});drops.forEach((d,i)=>{rCtx.beginPath();rCtx.moveTo(d.x,d.y);rCtx.lineTo(d.x-2,d.y+d.l);rCtx.strokeStyle=`rgba(130,195,255,${d.op})`;rCtx.lineWidth=d.w;rCtx.stroke();d.y+=d.s;if(d.y>rC.height+20)drops[i]={x:Math.random()*rC.width,y:-30,l:d.l,s:d.s,op:d.op,w:d.w};});requestAnimationFrame(anR);} function stR(){rsR();rRun=true;drops=[];anR();document.getElementById('cloudLayer').innerHTML=`<svg width="100%" height="96" viewBox="0 0 800 96" preserveAspectRatio="none"><ellipse cx="90" cy="52" rx="130" ry="44" fill="#182535" opacity=".95"/><ellipse cx="160" cy="34" rx="95" ry="36" fill="#1c2f3e" opacity=".9"/><ellipse cx="410" cy="48" rx="148" ry="44" fill="#172435" opacity=".95"/><ellipse cx="720" cy="54" rx="116" ry="40" fill="#182535" opacity=".95"/></svg>`;} function spR(){rRun=false;rCtx.clearRect(0,0,rC.width,rC.height);document.getElementById('cloudLayer').innerHTML='';}
+const sC=document.getElementById('sunCanvas'),sCtx=sC.getContext('2d'); let sAng=0,sRun=false; function anS(){if(!sRun)return;sCtx.clearRect(0,0,210,210);sAng+=.007;const cx=105,cy=105,r=46;sCtx.beginPath();sCtx.arc(cx,cy,96,0,Math.PI*2);sCtx.fillStyle='rgba(255,215,0,0.1)';sCtx.fill();for(let i=0;i<14;i++){const a=(i/14)*Math.PI*2+sAng;sCtx.beginPath();sCtx.moveTo(cx+Math.cos(a)*(r+7),cy+Math.sin(a)*(r+7));sCtx.lineTo(cx+Math.cos(a)*(r+22),cy+Math.sin(a)*(r+22));sCtx.strokeStyle=`rgba(255,200,0,0.5)`;sCtx.lineWidth=2.5;sCtx.stroke();}sCtx.beginPath();sCtx.arc(cx,cy,r,0,Math.PI*2);sCtx.fillStyle='#ffd700';sCtx.fill();requestAnimationFrame(anS);} function stS(){sRun=true;anS();} function spS(){sRun=false;sCtx.clearRect(0,0,210,210);}
 
-        // Games Database (GitHub URLs use karein agar hosted hain)
-        const games = [
-            { name: "Bubble Shooter", file: "bubbles.html", tags: ["bubble", "shoot"] },
-            { name: "Raja Mantri Chor Sipahi", file: "chor.html", tags: ["raja", "mantri", "chor"] },
-            { name: "Classic Snake", file: "snakeus.html", tags: ["snake", "saanp"] },
-            { name: "Hill Climb Racer", file: "geminihill.html", tags: ["car", "hill", "pahaad"] },
-            { name: "Yuddh Bhoomi", file: "gunish.html", tags: ["war", "army", "gunish"] },
-            { name: "Sipahi Game", file: "sipahi.html", tags: ["sipahi", "police"] },
-            { name: "Block Stacker", file: "blocks.html", tags: ["block", "tetris", "box", "stack", "bachpan"] }
+// =============================================
+//  STATE MANAGEMENT (THEME & LANGUAGE)
+// =============================================
+let currentTheme = localStorage.getItem('theme') || 'deep-space';
+let currentLang = localStorage.getItem('lang') || 'hinglish';
 
-      ];
+function setTheme(t) {
+    if (currentTheme === 'rain') spR();
+    if (currentTheme === 'sunny') spS();
+    document.body.className = 'theme-' + t;
+    currentTheme = t;
+    localStorage.setItem('theme', t);
+    
+    const root = document.documentElement;
+    const themes = {
+        'deep-space': { primary: '#00e5ff', accent: '#ff2d78', bg: '#02040a' },
+        simple:       { primary: '#d0d8e8', accent: '#888',    bg: '#0a0a0a' },
+        rain:         { primary: '#5bb8ff', accent: '#74d4ff', bg: '#060e18' },
+        sunny:        { primary: '#ffd700', accent: '#ff8c00', bg: '#0d1e35' }
+    };
+    root.style.setProperty('--primary', themes[t].primary);
+    root.style.setProperty('--accent',  themes[t].accent);
+    root.style.setProperty('--bg',      themes[t].bg);
+    
+    if (t === 'rain') stR();
+    if (t === 'sunny') stS();
+    
+    document.querySelectorAll('[id^="theme-"]').forEach(el => el.classList.remove('active'));
+    document.getElementById('theme-' + t)?.classList.add('active');
+    closeMenu();
+}
 
-        function addMessage(html, type) {
-            const div = document.createElement('div');
-            div.className = `message ${type}-message`;
-            div.innerHTML = html;
-            chatContainer.appendChild(div);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            return div;
+function setLang(l) {
+    currentLang = l;
+    localStorage.setItem('lang', l);
+    document.querySelectorAll('[id^="lang-"]').forEach(el => el.classList.remove('active'));
+    document.getElementById('lang-' + l)?.classList.add('active');
+    document.getElementById('userInput').placeholder = i18n[l].placeholder;
+    closeMenu();
+}
+
+function toggleMenu() { document.getElementById('settingsMenu').classList.toggle('open'); }
+function closeMenu()  { document.getElementById('settingsMenu').classList.remove('open'); }
+document.addEventListener('click', e => {
+    if (!e.target.closest('#settingsMenu') && !e.target.closest('#hamBtn')) closeMenu();
+});
+
+// =============================================
+//  MULTI-LANGUAGE DICTIONARY (i18n)
+// =============================================
+const i18n = {
+    'hi': {
+        placeholder: "गेम का नाम लिखें...",
+        greeting: "🚀 नमस्ते! मैं <strong>Game Hub AI v3</strong> हूँ।<br><br>आप क्या खेलना चाहेंगे? <em>(उपलब्ध गेम्स की सूची नीचे है)</em>",
+        not_found: (q) => `माफ़ करें, "<strong>${q}</strong>" अभी मेरे पास उपलब्ध नहीं है।<br><br>आप ये गेम्स खेल सकते हैं:<br>`,
+        found: (name) => `मिल गया! <strong>${name}</strong> तैयार है। खेलने के लिए नीचे बटन दबाएं।`,
+        play_btn: "▶ अभी खेलें (FULL SCREEN)",
+        help: "मैं आपके सवालों के जवाब दे सकता हूँ, गेम्स की सूची दिखा सकता हूँ, और गेम चालू कर सकता हूँ।",
+        about: "मैं <strong>गेम हब AI v3</strong> हूँ। मेरा काम गेम खोजना और आपको दिखाना है।",
+        count: (c) => `मेरे पास कुल <strong>${c}</strong> गेम्स उपलब्ध हैं।<br><br>`,
+        list: "ये रही उपलब्ध गेम्स की सूची:<br>",
+        unavailable_known: (name) => `माफ़ करें सर, <strong>${name}</strong> अभी मेरे पास नहीं है।<br><br>उपलब्ध गेम्स हैं:<br>`,
+    },
+    'en': {
+        placeholder: "Type a game name...",
+        greeting: "🚀 Hello! I am <strong>Game Hub AI v3</strong>.<br><br>What would you like to play? <em>(List below)</em>",
+        not_found: (q) => `Sorry, "<strong>${q}</strong>" is not available with me right now.<br><br>Here are the games you can play:<br>`,
+        found: (name) => `Found it! <strong>${name}</strong> is ready. Click the button below to play.`,
+        play_btn: "▶ PLAY NOW (FULL SCREEN)",
+        help: "I can answer simple questions, show the games list, and open games for you.",
+        about: "I am <strong>Game Hub AI v3</strong>. My job is to search and show available games.",
+        count: (c) => `I currently have a total of <strong>${c}</strong> games.<br><br>`,
+        list: "Here is the list of available games:<br>",
+        unavailable_known: (name) => `Sorry sir, <strong>${name}</strong> is currently unavailable.<br><br>Available games are:<br>`,
+    },
+    'hinglish': {
+        placeholder: "Game ka naam likhiye...",
+        greeting: "🚀 Hello boliye! Main <strong>Game Hub AI v3</strong> hoon.<br><br>Inme se aapko kya khelna hai? <em>(Game list niche di gayi hai)</em>",
+        not_found: (q) => `Sorry, "<strong>${q}</strong>" mere paas abhi available nahi hai.<br><br>Aap ye games khel sakte hain:<br>`,
+        found: (name) => `Mil gaya! <strong>${name}</strong> ready hai. Niche button se open kijiye.`,
+        play_btn: "▶ PLAY NOW (FULL SCREEN)",
+        help: "Main simple questions ka jawab de sakta hoon, games list dikha sakta hoon, aur kisi game ko search karke open kara sakta hoon.",
+        about: "Main <strong>Game Hub AI v3</strong> hoon. Mera kaam game search karna aur available games dikhana hai.",
+        count: (c) => `Mere paas abhi total <strong>${c}</strong> games hain.<br><br>`,
+        list: "Ye rahi available games ki list:<br>",
+        unavailable_known: (name) => `Sorry sir, <strong>${name}</strong> mere pass abhi available nahi hai.<br><br>Abhi ye games available hain:<br>`,
+    }
+};
+
+// =============================================
+//  GAME DATA & AI LOGIC
+// =============================================
+const chatContainer = document.getElementById('chat-container');
+const userInput = document.getElementById('userInput');
+const typingIndicator = document.getElementById('typingIndicator');
+
+const games = [
+    { name: "Bubble Shooter",          file: "bubbles.html",     tags: ["bubble", "shoot", "shooter"] },
+    { name: "Raja Mantri Chor Sipahi", file: "chor.html",        tags: ["raja", "mantri", "chor", "sipahi"] },
+    { name: "Classic Snake",           file: "snakeus.html",     tags: ["snake", "saanp", "snk"] },
+    { name: "Hill Climb Racer",        file: "geminihill.html",  tags: ["car", "hill", "pahaad", "racer"] },
+    { name: "Yuddh Bhoomi",            file: "gunish.html",      tags: ["war", "army", "gunish", "battle"] },
+    { name: "Sipahi Game",             file: "sipahi.html",      tags: ["sipahi", "police", "soldier"] },
+    { name: "Block Stacker",           file: "blocks.html",      tags: ["block", "tetris", "box", "stack", "bachpan"] }
+];
+
+const unavailableGames = [
+    { name: "PUBG", aliases: ["pubg", "playerunknown", "pub g"] },
+    { name: "BGMI", aliases: ["bgmi", "battlegrounds mobile india"] },
+    { name: "Free Fire", aliases: ["free fire", "ff"] }
+];
+
+// Initialize Settings and First Message
+setTheme(currentTheme);
+setLang(currentLang);
+
+function initChat() {
+    chatContainer.innerHTML = '';
+    const initialMsg = i18n[currentLang].greeting + '<br><br>• ' + games.map(g => g.name).join('<br>• ');
+    addMessage(initialMsg, 'ai');
+}
+initChat();
+
+function clearChat() {
+    initChat();
+}
+
+function addMessage(html, type) {
+    const div = document.createElement('div');
+    div.className = `message ${type}-message`;
+    div.innerHTML = html;
+    chatContainer.appendChild(div);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    return div;
+}
+
+function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[tag] || tag));
+}
+
+function normalizeText(text) {
+    return (text || '').toLowerCase().replace(/[^\w\sऀ-ॿ]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function findUnavailableGame(query) {
+    return unavailableGames.find(game => game.aliases.some(alias => query.includes(alias)));
+}
+
+function findGame(query) {
+    const exact = games.find(g => normalizeText(g.name) === query);
+    if (exact) return exact;
+    const direct = games.find(g => query.includes(normalizeText(g.name)) || g.tags.some(tag => query.includes(tag)));
+    if (direct) return direct;
+    const ranked = games.map(g => {
+        const hay = `${normalizeText(g.name)} ${g.tags.join(' ')}`;
+        let score = 0;
+        query.split(' ').forEach(word => {
+            if (!word) return;
+            if (hay.includes(word)) score += 2;
+            if (g.tags.includes(word)) score += 3;
+        });
+        return { game: g, score };
+    }).filter(x => x.score > 0).sort((a, b) => b.score - a.score);
+    return ranked.length ? ranked[0].game : null;
+}
+
+async function handleInput() {
+    const rawText = userInput.value.trim();
+    if (!rawText) return;
+    
+    userInput.value = '';
+    const safeText = escapeHTML(rawText);
+    addMessage(safeText, 'user');
+
+    // Show typing indicator
+    chatContainer.appendChild(typingIndicator);
+    typingIndicator.style.display = 'block';
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    // Simulate thinking delay
+    await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+    
+    typingIndicator.style.display = 'none';
+    processAIResponse(rawText, normalizeText(rawText));
+}
+
+function processAIResponse(rawQuery, query) {
+    let response = '';
+    let foundGame = null;
+    const lang = i18n[currentLang];
+    const gameListStr = '• ' + games.map(g => g.name).join('<br>• ');
+
+    const unavailable = findUnavailableGame(query);
+
+    if (/\b(hello|hi|hey|namaste|namaskar|helo|hii)\b/.test(query) || query === 'hello' || query === 'hi') {
+        response = lang.greeting + '<br><br>' + gameListStr;
+    } else if (unavailable) {
+        response = lang.unavailable_known(unavailable.name) + gameListStr;
+    } else if (/\b(help|madad|kya kar sakte|what can you do)\b/.test(query)) {
+        response = lang.help;
+    } else if (/\b(kaun ho|who are you|tum kaun|ap kaun|what are you)\b/.test(query)) {
+        response = lang.about;
+    } else if (query.includes('how many') || query.includes('kitne') || query.includes('count')) {
+        response = lang.count(games.length) + gameListStr;
+    } else if (/\b(list|naam|names|available|games|kaunse|kaun kaun|show)\b/.test(query)) {
+        response = lang.list + gameListStr;
+    } else {
+        foundGame = findGame(query);
+        if (foundGame) {
+            response = lang.found(foundGame.name);
+        } else {
+            // New logic: Show exact user requested game name + full list
+            const safeQuery = escapeHTML(rawQuery.length > 30 ? rawQuery.substring(0, 30) + '...' : rawQuery);
+            response = lang.not_found(safeQuery) + gameListStr;
         }
+    }
 
-        async function handleInput(presetText) {
-            const text = presetText || userInput.value.trim();
-            if (!text) return;
+    addMessage(response, 'ai');
 
-            userInput.value = "";
-            addMessage(text, 'user');
+    if (foundGame) {
+        const gc = document.createElement('div');
+        gc.className = 'game-card';
+        gc.innerHTML = `<div style="font-weight:bold;color:var(--primary);margin-bottom:6px;">🎮 ${foundGame.name}</div>
+                        <a href="${foundGame.file}" target="_blank" class="play-btn">${lang.play_btn}</a>`;
+        chatContainer.appendChild(gc);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+}
 
-            statusEl.style.display = 'block';
-            statusEl.innerText = "Naitik papa searching your search...";
-
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            statusEl.style.display = 'none';
-
-            processAIResponse(text.toLowerCase());
-        }
-
-        function processAIResponse(query) {
-            let response = "";
-            let foundGame = null;
-
-            if (query.includes("how many") || query.includes("kitne")) {
-                response = `Mere paas abhi total **${games.length}** games hain. Sab ek se badhkar ek hain!`;
-            } 
-            else if (query.includes("name") || query.includes("naam") || query.includes("list")) {
-                response = "Ye rahi list:<br>• " + games.map(g => g.name).join("<br>• ");
-            }
-            else {
-                foundGame = games.find(g => 
-                    query.includes(g.name.toLowerCase()) || 
-                    g.tags.some(tag => query.includes(tag))
-                );
-
-                if (foundGame) {
-                    response = `Naitik papa ko mil gaya! Hazir hai **${foundGame.name}**. Niche button par click karke full screen me kheliye!`;
-                } else {
-                    response = "Maafi chahta hoon, ye game mere database mein nahi mila. Kuch aur try karein?";
-                }
-            }
-
-            addMessage(response, 'ai');
-
-            if (foundGame) {
-                const gameCard = document.createElement('div');
-                gameCard.className = 'game-card';
-                gameCard.innerHTML = `
-                    <div style="font-weight:bold; color:var(--primary); margin-bottom:5px;">🎮 ${foundGame.name}</div>
-                    <a href="${foundGame.file}" target="_blank" class="play-btn">PLAY NOW (FULL SCREEN)</a>
-                `;
-                chatContainer.appendChild(gameCard);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
-        }
-    </script>
+window.addEventListener('resize', () => { rsA(); if (rRun) rsR(); });
+</script>
 </body>
 </html>
+
