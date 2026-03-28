@@ -6,6 +6,10 @@
     <title>Naitik AI v3.0 - Game Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- YAHAN HUMNE TUMHARA 'AIO' WIRE CONNECT KAR DIYA HAI -->
+    <script src="aio.js"></script>
+
     <style>
         :root {
             --bg: #02040a;
@@ -44,9 +48,7 @@
             from { transform: translate(0,0) scale(1); }
             to   { transform: translate(22px,28px) scale(1.08); }
         }
-        body.theme-simple .nebula,
-        body.theme-rain .nebula,
-        body.theme-sunny .nebula { display: none; }
+        body.theme-simple .nebula, body.theme-rain .nebula, body.theme-sunny .nebula { display: none; }
 
         /* ===== STARS & CANVAS ===== */
         #starsLayer, #asteroidCanvas, #rainCanvas, #cloudLayer, #sunCanvas {
@@ -159,6 +161,14 @@
             background: var(--primary); color: #000;
             font-weight: 700; border-bottom-right-radius: 3px;
             box-shadow: 0 3px 18px rgba(0,229,255,0.28);
+        }
+        .notice-message {
+            align-self: center;
+            background: rgba(255, 45, 120, 0.15);
+            border: 1px solid var(--accent);
+            color: #fff; text-align: center;
+            font-size: 13px; max-width: 90%;
+            border-radius: 8px; padding: 8px 12px;
         }
 
         /* Game Card */
@@ -281,17 +291,17 @@
 
 <!-- Chat -->
 <div id="chat-container">
-    <!-- Initial Greeting will be injected here based on language -->
+    <!-- Chat messages will be injected here -->
 </div>
 
 <div class="typing-indicator" id="typingIndicator">
     <span></span><span></span><span></span>
 </div>
 
-<!-- Bottom UI (No suggestions, No Mic) -->
+<!-- Bottom UI -->
 <div class="bottom-ui">
     <div class="input-area">
-        <input type="text" id="userInput" placeholder="Game naam likhiye..." onkeypress="if(event.key==='Enter') handleInput()">
+        <input type="text" id="userInput" placeholder="Sawal ya game ka naam likhiye..." onkeypress="if(event.key==='Enter') handleInput()">
         <button class="send-btn" onclick="handleInput()"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
@@ -357,40 +367,31 @@ document.addEventListener('click', e => {
 // =============================================
 const i18n = {
     'hi': {
-        placeholder: "गेम का नाम लिखें...",
+        placeholder: "सवाल या गेम का नाम लिखें...",
         greeting: "🚀 नमस्ते! मैं <strong>Game Hub AI v3</strong> हूँ।<br><br>आप क्या खेलना चाहेंगे? <em>(उपलब्ध गेम्स की सूची नीचे है)</em>",
-        not_found: (q) => `माफ़ करें, "<strong>${q}</strong>" अभी मेरे पास उपलब्ध नहीं है।<br><br>आप ये गेम्स खेल सकते हैं:<br>`,
         found: (name) => `मिल गया! <strong>${name}</strong> तैयार है। खेलने के लिए नीचे बटन दबाएं।`,
         play_btn: "▶ अभी खेलें (FULL SCREEN)",
-        help: "मैं आपके सवालों के जवाब दे सकता हूँ, गेम्स की सूची दिखा सकता हूँ, और गेम चालू कर सकता हूँ।",
-        about: "मैं <strong>गेम हब AI v3</strong> हूँ। मेरा काम गेम खोजना और आपको दिखाना है।",
-        count: (c) => `मेरे पास कुल <strong>${c}</strong> गेम्स उपलब्ध हैं।<br><br>`,
         list: "ये रही उपलब्ध गेम्स की सूची:<br>",
         unavailable_known: (name) => `माफ़ करें सर, <strong>${name}</strong> अभी मेरे पास नहीं है।<br><br>उपलब्ध गेम्स हैं:<br>`,
+        not_found: "ये मेरे contact के बाहर का question है sorry ..",
     },
     'en': {
-        placeholder: "Type a game name...",
+        placeholder: "Type a question or game name...",
         greeting: "🚀 Hello! I am <strong>Game Hub AI v3</strong>.<br><br>What would you like to play? <em>(List below)</em>",
-        not_found: (q) => `Sorry, "<strong>${q}</strong>" is not available with me right now.<br><br>Here are the games you can play:<br>`,
         found: (name) => `Found it! <strong>${name}</strong> is ready. Click the button below to play.`,
         play_btn: "▶ PLAY NOW (FULL SCREEN)",
-        help: "I can answer simple questions, show the games list, and open games for you.",
-        about: "I am <strong>Game Hub AI v3</strong>. My job is to search and show available games.",
-        count: (c) => `I currently have a total of <strong>${c}</strong> games.<br><br>`,
         list: "Here is the list of available games:<br>",
         unavailable_known: (name) => `Sorry sir, <strong>${name}</strong> is currently unavailable.<br><br>Available games are:<br>`,
+        not_found: "Sorry, this question is out of my contact ..",
     },
     'hinglish': {
-        placeholder: "Game ka naam likhiye...",
+        placeholder: "Sawal ya game ka naam likhiye...",
         greeting: "🚀 Hello boliye! Main <strong>Game Hub AI v3</strong> hoon.<br><br>Inme se aapko kya khelna hai? <em>(Game list niche di gayi hai)</em>",
-        not_found: (q) => `Sorry, "<strong>${q}</strong>" mere paas abhi available nahi hai.<br><br>Aap ye games khel sakte hain:<br>`,
         found: (name) => `Mil gaya! <strong>${name}</strong> ready hai. Niche button se open kijiye.`,
         play_btn: "▶ PLAY NOW (FULL SCREEN)",
-        help: "Main simple questions ka jawab de sakta hoon, games list dikha sakta hoon, aur kisi game ko search karke open kara sakta hoon.",
-        about: "Main <strong>Game Hub AI v3</strong> hoon. Mera kaam game search karna aur available games dikhana hai.",
-        count: (c) => `Mere paas abhi total <strong>${c}</strong> games hain.<br><br>`,
         list: "Ye rahi available games ki list:<br>",
         unavailable_known: (name) => `Sorry sir, <strong>${name}</strong> mere pass abhi available nahi hai.<br><br>Abhi ye games available hain:<br>`,
+        not_found: "Ye mere contact ke bahar ka question hai sorry ..",
     }
 };
 
@@ -423,6 +424,12 @@ setLang(currentLang);
 
 function initChat() {
     chatContainer.innerHTML = '';
+
+    // Check custom instructions from AIO (The Wire)
+    if (typeof aioData !== 'undefined' && aioData.customInstruction && aioData.customInstruction.trim() !== "") {
+        addMessage(aioData.customInstruction, 'notice');
+    }
+
     const initialMsg = i18n[currentLang].greeting + '<br><br>• ' + games.map(g => g.name).join('<br>• ');
     addMessage(initialMsg, 'ai');
 }
@@ -434,7 +441,11 @@ function clearChat() {
 
 function addMessage(html, type) {
     const div = document.createElement('div');
-    div.className = `message ${type}-message`;
+    if (type === 'notice') {
+        div.className = `message notice-message`;
+    } else {
+        div.className = `message ${type}-message`;
+    }
     div.innerHTML = html;
     chatContainer.appendChild(div);
     chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -481,12 +492,10 @@ async function handleInput() {
     const safeText = escapeHTML(rawText);
     addMessage(safeText, 'user');
 
-    // Show typing indicator
     chatContainer.appendChild(typingIndicator);
     typingIndicator.style.display = 'block';
     chatContainer.scrollTop = chatContainer.scrollHeight;
 
-    // Simulate thinking delay
     await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
     
     typingIndicator.style.display = 'none';
@@ -501,36 +510,52 @@ function processAIResponse(rawQuery, query) {
 
     const unavailable = findUnavailableGame(query);
 
+    // 1. Basic Greeting Check
     if (/\b(hello|hi|hey|namaste|namaskar|helo|hii)\b/.test(query) || query === 'hello' || query === 'hi') {
         response = lang.greeting + '<br><br>' + gameListStr;
-    } else if (unavailable) {
+    } 
+    // 2. Unavailable Game Check
+    else if (unavailable) {
         response = lang.unavailable_known(unavailable.name) + gameListStr;
-    } else if (/\b(help|madad|kya kar sakte|what can you do)\b/.test(query)) {
-        response = lang.help;
-    } else if (/\b(kaun ho|who are you|tum kaun|ap kaun|what are you)\b/.test(query)) {
-        response = lang.about;
-    } else if (query.includes('how many') || query.includes('kitne') || query.includes('count')) {
-        response = lang.count(games.length) + gameListStr;
-    } else if (/\b(list|naam|names|available|games|kaunse|kaun kaun|show)\b/.test(query)) {
+    } 
+    // 3. Game List Check
+    else if (/\b(list|naam|names|available|games|kaunse|kaun kaun|show)\b/.test(query)) {
         response = lang.list + gameListStr;
-    } else {
+    } 
+    else {
+        // 4. Try to find if it's a Game request
         foundGame = findGame(query);
+        
         if (foundGame) {
             response = lang.found(foundGame.name);
         } else {
-            // New logic: Show exact user requested game name + full list
-            const safeQuery = escapeHTML(rawQuery.length > 30 ? rawQuery.substring(0, 30) + '...' : rawQuery);
-            response = lang.not_found(safeQuery) + gameListStr;
+            // 5. Game nahi mila? Toh AIO LOGIC (The Wire) me check karo
+            let aioMatch = null;
+            if (typeof aioData !== 'undefined' && aioData.qaList) {
+                // Check agar koi keyword user ke query se match kar raha hai
+                aioMatch = aioData.qaList.find(qa => 
+                    qa.keywords.some(k => query.includes(normalizeText(k)))
+                );
+            }
+
+            if (aioMatch) {
+                // AIO me jawab mil gaya
+                response = aioMatch.answer;
+            } else {
+                // Kahin nahi mila (Fallback)
+                response = lang.not_found;
+            }
         }
     }
 
     addMessage(response, 'ai');
 
+    // Agar game mila toh uska Play Button card dikhao
     if (foundGame) {
         const gc = document.createElement('div');
         gc.className = 'game-card';
         gc.innerHTML = `<div style="font-weight:bold;color:var(--primary);margin-bottom:6px;">🎮 ${foundGame.name}</div>
-                        <a href="${foundGame.file}" target="_blank" class="play-btn">${lang.play_btn}</a>`;
+                        <a href="${foundGame.file}" class="play-btn">${lang.play_btn}</a>`;
         chatContainer.appendChild(gc);
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
