@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Brick Breaker Pro - Naitik AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #02040a;
+            --primary: #00e5ff;
+            --accent: #ff2d78;
+            --text: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; touch-action: none; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background-image: radial-gradient(circle at top, rgba(0, 229, 255, 0.1), transparent 60%);
+        }
+
+        /* Header / Stats */
+        .header {
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(2, 4, 10, 0.8);
+            border-bottom: 2px solid rgba(0, 229, 255, 0.3);
+            font-size: 18px;
+            z-index: 10;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .highlight { color: var(--accent); }
+
+        /* Game Canvas */
+        .game-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 10px;
+        }
+
+        canvas {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2), inset 0 0 20px rgba(0,0,0,0.8);
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* Controller Area */
+        .controller-area {
+            width: 100%;
+            padding: 20px 30px 40px;
+            background: rgba(10, 20, 40, 0.9);
+            border-top: 2px solid var(--primary);
+            box-shadow: 0 -10px 30px rgba(0, 229, 255, 0.1);
+            z-index: 10;
+        }
+
+        .control-label {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        /* Custom Neon Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]:focus { outline: none; }
+
+        /* Slider Track */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 12px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        /* Slider Thumb (The Wheel) */
+        input[type=range]::-webkit-slider-thumb {
+            height: 34px;
+            width: 60px;
+            border-radius: 17px;
+            background: var(--accent);
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -12px;
+            box-shadow: 0 0 15px var(--accent), inset 0 0 10px rgba(255,255,255,0.5);
+            border: 2px solid #fff;
+            position: relative;
+        }
+
+        /* Overlays */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .overlay.active { opacity: 1; pointer-events: all; }
+        
+        .overlay h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px var(--primary);
+        }
+
+        .btn {
+            background: var(--primary); color: #000; border: none; padding: 12px 30px;
+            font-size: 18px; font-family: 'Orbitron', sans-serif; font-weight: 900;
+            border-radius: 8px; cursor: pointer; box-shadow: 0 5px 25px rgba(0, 229, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="stat-box">SCORE: <span id="scoreDisplay" class="highlight">0</span></div>
+        <div class="stat-box">LEVEL: <span id="levelDisplay" class="highlight">1</span></div>
+        <div class="stat-box">LIVES: <span id="livesDisplay" class="highlight">3</span></div>
+    </div>
+
+    <div class="game-area">
+        <!-- Logical size, scaled via CSS -->
+        <canvas id="gameCanvas" width="400" height="500"></canvas>
+    </div>
+
+    <!-- Naya Draggable Controller (Wheel) -->
+    <div class="controller-area">
+        <div class="control-label">&lt;&lt;&lt; SLIDE TO MOVE PADDLE &gt;&gt;&gt;</div>
+        <input type="range" id="paddleController" min="0" max="1000" value="500">
+    </div>
+
+    <!-- Messages -->
+    <div class="overlay" id="gameOverScreen">
+        <h2 style="color: #ff2d78; text-shadow: 0 0 20px #ff2d78;">GAME OVER</h2>
+        <button class="btn" onclick="document.location.reload()">RESTART</button>
+    </div>
+
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const slider = document.getElementById("paddleController");
+    
+    // UI Elements
+    const scoreEl = document.getElementById("scoreDisplay");
+    const levelEl = document.getElementById("levelDisplay");
+    const livesEl = document.getElementById("livesDisplay");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+
+    // Game Variables
+    let score = 0;
+    let lives = 3;
+    let level = 1;
+    let isGameOver = false;
+
+    // Ball
+    let ballRadius = 6;
+    let x = canvas.width / 2;
+    let y = canvas.height - 40;
+    let dx = 3;
+    let dy = -3;
+    let baseSpeed = 3;
+
+    // Paddle
+    let paddleHeight = 10;
+    let paddleWidth = 80;
+    let paddleX = (canvas.width - paddleWidth) / 2;
+
+    // Bricks
+    let brickRowCount = 5;
+    let brickColumnCount = 6;
+    let brickWidth = 54;
+    let brickHeight = 16;
+    let brickPadding = 8;
+    let brickOffsetTop = 40;
+    let brickOffsetLeft = 18;
+    let bricks = [];
+
+    // Particles (For Explosion Effect)
+    let particles = [];
+
+    function initBricks() {
+        bricks = [];
+        for(let c=0; c<brickColumnCount; c++) {
+            bricks[c] = [];
+            for(let r=0; r<brickRowCount; r++) {
+                // Determine color based on row
+                let hue = 180 + (r * 30); // Cyans to Purples
+                bricks[c][r] = { x: 0, y: 0, status: 1, color: `hsl(${hue}, 100%, 60%)` };
+            }
+        }
+    }
+    initBricks();
+
+    // Controller Input Logic
+    slider.addEventListener('input', function() {
+        // Map slider value (0-1000) to Canvas Width
+        let ratio = this.value / 1000;
+        paddleX = ratio * (canvas.width - paddleWidth);
+    });
+
+    // Particle System Logic
+    function createParticles(px, py, color) {
+        for(let i=0; i<8; i++) {
+            particles.push({
+                x: px + brickWidth/2,
+                y: py + brickHeight/2,
+                vx: (Math.random() - 0.5) * 6,
+                vy: (Math.random() - 0.5) * 6,
+                life: 1.0,
+                color: color
+            });
+        }
+    }
+
+    function drawParticles() {
+        for(let i=0; i<particles.length; i++) {
+            let p = particles[i];
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, 4, 4);
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life -= 0.05; // Fade out speed
+        }
+        ctx.globalAlpha = 1.0;
+        // Remove dead particles
+        particles = particles.filter(p => p.life > 0);
+    }
+
+    // Main Game Logic
+    function collisionDetection() {
+        let activeBricks = 0;
+        for(let c=0; c<brickColumnCount; c++) {
+            for(let r=0; r<brickRowCount; r++) {
+                let b = bricks[c][r];
+                if(b.status == 1) {
+                    activeBricks++;
+                    if(x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
+                        dy = -dy;
+                        b.status = 0;
+                        score += 10;
+                        scoreEl.innerText = score;
+                        createParticles(b.x, b.y, b.color); // BOOM!
+                    }
+                }
+            }
+        }
+
+        // Level Up Logic
+        if(activeBricks === 0) {
+            level++;
+            levelEl.innerText = level;
+            baseSpeed += 0.5; // Increase difficulty
+            dx = dx > 0 ? baseSpeed : -baseSpeed;
+            dy = -baseSpeed;
+            x = canvas.width / 2;
+            y = canvas.height - 40;
+            paddleWidth = Math.max(40, paddleWidth - 5); // Make paddle smaller
+            initBricks();
+        }
+    }
+
+    function drawBall() {
+        ctx.beginPath();
+        ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+        ctx.fillStyle = "#ff2d78";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#ff2d78";
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.closePath();
+    }
+
+    function drawPaddle() {
+        ctx.beginPath();
+        ctx.roundRect(paddleX, canvas.height - paddleHeight - 10, paddleWidth, paddleHeight, 5);
+        ctx.fillStyle = "#00e5ff";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#00e5ff";
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.closePath();
+    }
+
+    function drawBricks() {
+        for(let c=0; c<brickColumnCount; c++) {
+            for(let r=0; r<brickRowCount; r++) {
+                if(bricks[c][r].status == 1) {
+                    let brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+                    let brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
+                    bricks[c][r].x = brickX;
+                    bricks[c][r].y = brickY;
+                    
+                    ctx.beginPath();
+                    ctx.roundRect(brickX, brickY, brickWidth, brickHeight, 3);
+                    ctx.fillStyle = bricks[c][r].color;
+                    ctx.fill();
+                    
+                    // Glossy effect on brick
+                    ctx.fillStyle = "rgba(255,255,255,0.3)";
+                    ctx.fillRect(brickX, brickY, brickWidth, brickHeight/2);
+                    
+                    ctx.closePath();
+                }
+            }
+        }
+    }
+
+    function draw() {
+        if(isGameOver) return;
+
+        // Clear canvas with trail effect
+        ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        drawBricks();
+        drawBall();
+        drawPaddle();
+        drawParticles();
+        collisionDetection();
+
+        // Wall collisions
+        if(x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+            dx = -dx;
+        }
+        if(y + dy < ballRadius) {
+            dy = -dy;
+        } 
+        else if(y + dy > canvas.height - ballRadius - 10) { // Check near paddle
+            if(x > paddleX - 5 && x < paddleX + paddleWidth + 5) {
+                // Dynamic Angle Logic based on where it hit the paddle
+                let hitPoint = x - (paddleX + paddleWidth/2);
+                let normalizedHit = hitPoint / (paddleWidth/2); // -1 to 1
+                
+                dx = normalizedHit * baseSpeed * 1.5; 
+                dy = -Math.abs(dy); // Always bounce up
+            }
+            else if (y + dy > canvas.height - ballRadius) {
+                // Life Lost
+                lives--;
+                livesEl.innerText = lives;
+                if(!lives) {
+                    isGameOver = true;
+                    gameOverScreen.classList.add('active');
+                } else {
+                    // Reset Ball
+                    x = canvas.width / 2;
+                    y = canvas.height - 40;
+                    dx = baseSpeed;
+                    dy = -baseSpeed;
+                }
+            }
+        }
+
+        x += dx;
+        y += dy;
+
+        requestAnimationFrame(draw);
+    }
+
+    draw();
+</script>
+</body>
+</html>
+
+
