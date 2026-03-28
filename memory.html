@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Mind Puzzle - Naitik AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #02040a;
+            --primary: #00e5ff;
+            --accent: #ff2d78;
+            --card-back: #0a1526;
+            --text: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.1), transparent 50%);
+        }
+
+        .header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background: rgba(2, 4, 10, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(0, 229, 255, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            text-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+            font-size: 24px;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value { color: var(--accent); font-family: 'Orbitron', sans-serif; }
+
+        /* Game Board */
+        .board-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 12px;
+            max-width: 500px;
+            width: 100%;
+            perspective: 1000px;
+        }
+
+        /* Cards */
+        .card {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        .card.flipped, .card.matched {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 2px solid transparent;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #0a1526, #112240);
+            border-color: rgba(0, 229, 255, 0.3);
+            background-image: repeating-linear-gradient(45deg, rgba(0,229,255,0.05) 0px, rgba(0,229,255,0.05) 2px, transparent 2px, transparent 8px);
+        }
+
+        .card-back::after {
+            content: '?';
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            color: rgba(0, 229, 255, 0.4);
+        }
+
+        .card.flipped .card-back, .card.matched .card-back {
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.8);
+        }
+
+        .card-front {
+            transform: rotateY(180deg);
+            background-color: var(--card-color, #fff);
+            border-color: rgba(255,255,255,0.5);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 0 15px var(--card-color);
+        }
+
+        .card.matched .card-front {
+            animation: pulseMatch 1s infinite alternate;
+        }
+
+        @keyframes pulseMatch {
+            0% { transform: rotateY(180deg) scale(1); filter: brightness(1); }
+            100% { transform: rotateY(180deg) scale(0.95); filter: brightness(0.7); }
+        }
+
+        /* Level Up Overlay */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .overlay h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: #00ff88;
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #00ff88;
+            transform: translateY(-20px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .overlay.active h2 { transform: translateY(0); }
+
+        .overlay p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            color: #ccc;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 5px 25px rgba(0, 229, 255, 0.4);
+            transition: all 0.2s;
+        }
+
+        .btn:hover, .btn:active {
+            transform: scale(1.05);
+            box-shadow: 0 5px 35px rgba(0, 229, 255, 0.6);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>NEON MIND PUZZLE</h1>
+        <div class="stats">
+            <div class="stat-box">LEVEL <span id="levelDisplay" class="stat-value">1</span></div>
+            <div class="stat-box">MOVES <span id="movesDisplay" class="stat-value">0</span></div>
+        </div>
+    </div>
+
+    <div class="board-container">
+        <div class="grid" id="grid">
+            <!-- Cards will be generated here -->
+        </div>
+    </div>
+
+    <!-- Level Complete Overlay -->
+    <div class="overlay" id="overlay">
+        <h2 id="msgTitle">LEVEL CLEARED!</h2>
+        <p>Total Moves: <span id="finalMoves" class="stat-value"></span></p>
+        <button class="btn" id="nextLevelBtn" onclick="nextLevel()">NEXT LEVEL ðŸš€</button>
+    </div>
+
+<script>
+    // --- Level Configuration ---
+    // Here we define columns and total cards for each level.
+    // Box numbers increase: 4, 8, 12, 16, 20, 24, 30
+    const levels = [
+        { cols: 2, totalCards: 4 },   // Lvl 1
+        { cols: 4, totalCards: 8 },   // Lvl 2
+        { cols: 4, totalCards: 12 },  // Lvl 3
+        { cols: 4, totalCards: 16 },  // Lvl 4
+        { cols: 5, totalCards: 20 },  // Lvl 5
+        { cols: 4, totalCards: 24 },  // Lvl 6
+        { cols: 5, totalCards: 30 },  // Lvl 7 (Max for mobile screens usually)
+    ];
+
+    let currentLevelIndex = 0;
+    let cards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let moves = 0;
+    let isProcessing = false; // prevents clicking while cards flip back
+
+    const grid = document.getElementById('grid');
+    const levelDisplay = document.getElementById('levelDisplay');
+    const movesDisplay = document.getElementById('movesDisplay');
+    const overlay = document.getElementById('overlay');
+    const nextLevelBtn = document.getElementById('nextLevelBtn');
+
+    // Generate highly distinct random neon colors
+    function generateDistinctColors(numPairs) {
+        let colors = [];
+        let step = 360 / numPairs; // Divide color wheel evenly
+        let startHue = Math.floor(Math.random() * 360); // Random starting point
+
+        for (let i = 0; i < numPairs; i++) {
+            let hue = (startHue + (i * step)) % 360;
+            // Use high saturation and lightness for neon look
+            colors.push(`hsl(${hue}, 90%, 60%)`); 
+        }
+
+        // Shuffle colors so similar hues aren't always next to each other
+        colors = shuffleArray(colors);
+        
+        // Return duplicated array to make pairs
+        return [...colors, ...colors];
+    }
+
+    // Standard Fisher-Yates Shuffle
+    function shuffleArray(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex != 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    // Initialize the Game Board
+    function initGame() {
+        // Safe check for max levels
+        if(currentLevelIndex >= levels.length) {
+            currentLevelIndex = levels.length - 1; // Cap at max level
+        }
+
+        const config = levels[currentLevelIndex];
+        const numPairs = config.totalCards / 2;
+
+        // Reset variables
+        flippedCards = [];
+        matchedPairs = 0;
+        moves = 0;
+        isProcessing = false;
+        
+        // Update UI
+        levelDisplay.innerText = currentLevelIndex + 1;
+        movesDisplay.innerText = moves;
+        overlay.classList.remove('active');
+
+        // Setup Grid CSS
+        grid.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
+        grid.innerHTML = ''; // Clear board
+
+        // Generate and shuffle colors
+        let levelColors = generateDistinctColors(numPairs);
+        levelColors = shuffleArray(levelColors);
+
+        // Create DOM Elements for Cards
+        levelColors.forEach(color => {
+            const card = document.createElement('div');
+            card.classList.add('card');
+            card.dataset.color = color; // Store color for matching logic
+
+            // Front is the hidden side, Back is the revealed color
+            card.innerHTML = `
+                <div class="card-face card-back"></div>
+                <div class="card-face card-front" style="--card-color: ${color}"></div>
+            `;
+
+            card.addEventListener('click', onCardClick);
+            grid.appendChild(card);
+        });
+    }
+
+    // Card Click Logic
+    function onCardClick() {
+        if (isProcessing) return; // Don't allow click if evaluating
+        if (this.classList.contains('flipped') || this.classList.contains('matched')) return; // Ignore already flipped
+
+        this.classList.add('flipped');
+        flippedCards.push(this);
+
+        if (flippedCards.length === 2) {
+            moves++;
+            movesDisplay.innerText = moves;
+            checkMatch();
+        }
+    }
+
+    // Match Evaluation Logic
+    function checkMatch() {
+        isProcessing = true; // Lock board
+        const [card1, card2] = flippedCards;
+        const color1 = card1.dataset.color;
+        const color2 = card2.dataset.color;
+
+        if (color1 === color2) {
+            // Match found!
+            setTimeout(() => {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                flippedCards = [];
+                isProcessing = false;
+
+                // Check Win Condition
+                const totalPairs = levels[currentLevelIndex].totalCards / 2;
+                if (matchedPairs === totalPairs) {
+                    showLevelComplete();
+                }
+            }, 400); // Small delay for effect
+        } else {
+            // No match, flip back
+            setTimeout(() => {
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                flippedCards = [];
+                isProcessing = false;
+            }, 800); // Wait so user can see the wrong pair
+        }
+    }
+
+    // Level Complete Logic
+    function showLevelComplete() {
+        setTimeout(() => {
+            document.getElementById('finalMoves').innerText = moves;
+            
+            if (currentLevelIndex === levels.length - 1) {
+                document.getElementById('msgTitle').innerText = "YOU BEAT THE GAME! ðŸ‘‘";
+                document.getElementById('msgTitle').style.color = "#ff2d78";
+                nextLevelBtn.innerText = "PLAY AGAIN";
+            } else {
+                document.getElementById('msgTitle').innerText = "LEVEL CLEARED! ðŸŒŸ";
+                document.getElementById('msgTitle').style.color = "#00ff88";
+                nextLevelBtn.innerText = "NEXT LEVEL ðŸš€";
+            }
+            
+            overlay.classList.add('active');
+        }, 500);
+    }
+
+    function nextLevel() {
+        if (currentLevelIndex === levels.length - 1) {
+            currentLevelIndex = 0; // Reset game if max level reached
+        } else {
+            currentLevelIndex++; // Go to next level
+        }
+        initGame();
+    }
+
+    // Start the first level on load
+    window.onload = initGame;
+
+</script>
+</body>
+</html>
+
+
