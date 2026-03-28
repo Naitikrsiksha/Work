@@ -41,7 +41,10 @@ const aioData = {
         {
             keywords: ["gta 5", "gta v", "vice city"],
             answer: "GTA 5 bahut heavy game hai sir, wo abhi mere chote se web server par nahi chal sakta. Aap dusre games try karein."
-        }
+        },
+        {
+            keywords:["fuck you","sex","chod","bahan chod","beti chod","bakchod","land","gand maraw","maal patawa","chutiya","randi","mother fucker","Sister fucker","daughter fucker"],
+                            answer: "aabe sale pagal hai kya ye tu gaali kab se dene laga be. 🧐🤬, agar koi game khelna hai to bas wahi bol."},
         // Naya sawal add karne ke liye upar wale bracket } ke baad comma (,) lagao aur naya block likh do.
     ]
 
