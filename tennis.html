@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sci-Fi Badminton - Naitik AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050a15;
+            --primary: #00e5ff;
+            --accent: #ff2d78;
+            --comp: #ff9900;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; touch-action: none; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background-image: radial-gradient(circle at center, rgba(0, 229, 255, 0.1), transparent 70%);
+        }
+
+        /* HUD - Stats */
+        .header {
+            width: 100%;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(2, 4, 10, 0.8);
+            border-bottom: 2px solid rgba(0, 229, 255, 0.3);
+            font-size: 20px;
+            z-index: 10;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .highlight-score { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+        .highlight-lives { color: var(--accent); text-shadow: 0 0 15px var(--accent); }
+
+        /* Game Area */
+        .game-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 10px;
+            position: relative;
+        }
+
+        canvas {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(0, 229, 255, 0.5);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.15), inset 0 0 50px rgba(0,0,0,0.8);
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .shake {
+            animation: screenShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes screenShake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+
+        /* Game Over Overlay */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+            backdrop-filter: blur(8px);
+        }
+
+        .overlay.active { opacity: 1; pointer-events: all; }
+
+        .overlay h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent);
+            font-size: 40px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 25px var(--accent);
+            letter-spacing: 3px;
+        }
+
+        .overlay p {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 30px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn {
+            background: var(--primary); color: #000; border: none; padding: 15px 40px;
+            font-size: 20px; font-family: 'Orbitron', sans-serif; font-weight: 900;
+            border-radius: 8px; cursor: pointer; box-shadow: 0 5px 25px rgba(0, 229, 255, 0.5);
+            transition: transform 0.2s;
+        }
+
+        .btn:hover, .btn:active { transform: scale(1.05); }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="stat-box">SCORE: <span id="scoreDisplay" class="highlight-score">0</span></div>
+        <div class="stat-box" style="font-size: 14px; color: #aaa;">COMPUTER VS YOU</div>
+        <div class="stat-box">LIVES: <span id="livesDisplay" class="highlight-lives">❤❤❤❤❤</span></div>
+    </div>
+
+    <div class="game-wrapper" id="gameWrapper">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        
+        <div class="overlay" id="gameOverScreen">
+            <h2>GAME OVER</h2>
+            <p>Final Score: <span id="finalScore" class="highlight-score">0</span></p>
+            <button class="btn" onclick="document.location.reload()">PLAY AGAIN</button>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const gameWrapper = document.getElementById("gameWrapper");
+    
+    // UI Elements
+    const scoreEl = document.getElementById("scoreDisplay");
+    const livesEl = document.getElementById("livesDisplay");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const finalScoreEl = document.getElementById("finalScore");
+
+    // Game State
+    let score = 0;
+    let lives = 5;
+    let isGameOver = false;
+
+    // Ball (Energy Shuttlecock)
+    let ball = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: 8,
+        speedX: 7,
+        speedY: 4,
+        baseSpeed: 7,
+        color: '#fff'
+    };
+
+    // Racket Dimensions
+    const headWidth = 15;
+    const headHeight = 50;
+    const handleLength = 40;
+
+    // Computer (Left Side)
+    let comp = {
+        x: 50,
+        y: canvas.height / 2,
+        color: '#ff9900',
+        targetY: canvas.height / 2,
+        swingAngle: 0
+    };
+
+    // User (Right Side)
+    let user = {
+        x: canvas.width - 50,
+        y: canvas.height / 2,
+        color: '#00e5ff',
+        targetY: canvas.height / 2,
+        swingAngle: 0,
+        isSwinging: false
+    };
+
+    // Particles System
+    let particles = [];
+
+    function createParticles(x, y, color) {
+        for(let i=0; i<12; i++) {
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10,
+                life: 1.0,
+                color: color
+            });
+        }
+    }
+
+    function drawParticles() {
+        for(let i=0; i<particles.length; i++) {
+            let p = particles[i];
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+            ctx.fill();
+            p.x += p.vx; p.y += p.vy;
+            p.life -= 0.04;
+        }
+        ctx.globalAlpha = 1.0;
+        particles = particles.filter(p => p.life > 0);
+    }
+
+    // Input Handling (Tap jaha karega waha racket jayega)
+    function updateMousePos(evt) {
+        let rect = canvas.getBoundingClientRect();
+        let scaleY = canvas.height / rect.height;
+        let y = (evt.clientY - rect.top) * scaleY;
+        
+        // Boundaries for target
+        if(y < headHeight) y = headHeight;
+        if(y > canvas.height - headHeight) y = canvas.height - headHeight;
+        
+        user.targetY = y;
+    }
+
+    // Pointer events for both Mouse and Touch
+    canvas.addEventListener('pointermove', updateMousePos);
+    
+    canvas.addEventListener('pointerdown', (evt) => {
+        updateMousePos(evt);
+        // Trigger Smash Animation
+        user.isSwinging = true;
+        user.swingAngle = -0.5; // Pull back
+        setTimeout(() => { user.swingAngle = 0.5; }, 100); // Smash forward
+        setTimeout(() => { user.swingAngle = 0; user.isSwinging = false; }, 250); // Reset
+    });
+
+    // Reset Ball Logic
+    function resetBall(scorer) {
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+        ball.speedY = (Math.random() > 0.5 ? 4 : -4);
+        
+        // Increase speed slightly over time
+        ball.baseSpeed = Math.min(ball.baseSpeed + 0.3, 14);
+        
+        if (scorer === 'user') {
+            ball.speedX = -ball.baseSpeed; // Throw towards computer
+        } else {
+            ball.speedX = ball.baseSpeed; // Throw towards user
+        }
+    }
+
+    // Update Hearts Display
+    function updateLivesDisplay() {
+        let hearts = "";
+        for(let i=0; i<lives; i++) hearts += "❤";
+        for(let i=lives; i<5; i++) hearts += "🤍";
+        livesEl.innerText = hearts;
+    }
+
+    // Screen Shake Effect
+    function triggerShake() {
+        gameWrapper.classList.add('shake');
+        setTimeout(() => { gameWrapper.classList.remove('shake'); }, 400);
+    }
+
+    // Movement & Logic
+    function moveEverything() {
+        if (isGameOver) return;
+
+        // Smooth User Movement (Gliding to tap position)
+        user.y += (user.targetY - user.y) * 0.2;
+
+        // Computer AI Movement (Follows the ball with slight delay)
+        let compCenter = comp.y;
+        if(compCenter < ball.y - 20) {
+            comp.y += 5;
+        } else if(compCenter > ball.y + 20) {
+            comp.y -= 5;
+        }
+        
+        // Computer Swing AI
+        if(ball.x < 150 && ball.speedX < 0) {
+            comp.swingAngle = 0.5;
+        } else {
+            comp.swingAngle = 0;
+        }
+
+        // Ball Movement
+        ball.x += ball.speedX;
+        ball.y += ball.speedY;
+
+        // Top and Bottom Walls Bounce
+        if(ball.y < ball.radius || ball.y > canvas.height - ball.radius) {
+            ball.speedY = -ball.speedY;
+            ball.y += ball.speedY; // push out of wall
+        }
+
+        // Racket Collision - Computer (Left)
+        if(ball.x - ball.radius < comp.x + headWidth) {
+            if(ball.y > comp.y - headHeight && ball.y < comp.y + headHeight) {
+                ball.speedX = Math.abs(ball.speedX) + 0.5; // Speed up
+                let deltaY = ball.y - comp.y;
+                ball.speedY = deltaY * 0.2;
+                ball.x = comp.x + headWidth + ball.radius; // Prevent sticking
+                createParticles(ball.x, ball.y, comp.color);
+            } else if (ball.x < 0) {
+                // User Scores
+                score += 10;
+                scoreEl.innerText = score;
+                createParticles(20, ball.y, '#00ff88');
+                resetBall('user');
+            }
+        }
+
+        // Racket Collision - User (Right)
+        if(ball.x + ball.radius > user.x - headWidth) {
+            if(ball.y > user.y - headHeight && ball.y < user.y + headHeight) {
+                ball.speedX = -Math.abs(ball.speedX) - 0.5; // Speed up & bounce back
+                
+                // If hitting during a swing, extra power!
+                if(user.isSwinging) ball.speedX -= 2; 
+
+                let deltaY = ball.y - user.y;
+                ball.speedY = deltaY * 0.2;
+                ball.x = user.x - headWidth - ball.radius; // Prevent sticking
+                createParticles(ball.x, ball.y, user.color);
+            } else if (ball.x > canvas.width) {
+                // Computer Scores (User loses a life)
+                lives--;
+                updateLivesDisplay();
+                triggerShake();
+                createParticles(canvas.width - 20, ball.y, '#ff2d78');
+                
+                if(lives <= 0) {
+                    isGameOver = true;
+                    finalScoreEl.innerText = score;
+                    gameOverScreen.classList.add('active');
+                } else {
+                    resetBall('comp');
+                }
+            }
+        }
+    }
+
+    // Drawing Badminton Racket
+    function drawRacket(x, y, color, isRightSide, swingAngle) {
+        ctx.save();
+        ctx.translate(x, y);
+        
+        // Apply swing rotation
+        ctx.rotate(isRightSide ? -swingAngle : swingAngle);
+
+        // Draw Handle (Dandi)
+        ctx.beginPath();
+        if(isRightSide) {
+            ctx.moveTo(headWidth, 0);
+            ctx.lineTo(headWidth + handleLength, 0);
+        } else {
+            ctx.moveTo(-headWidth, 0);
+            ctx.lineTo(-(headWidth + handleLength), 0);
+        }
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = '#cccccc';
+        ctx.stroke();
+
+        // Draw Racket Head (Oval)
+        ctx.beginPath();
+        ctx.ellipse(0, 0, headWidth, headHeight, 0, 0, Math.PI * 2);
+        
+        // Strings Grid inside Racket
+        ctx.save();
+        ctx.clip(); // Clip strings to the oval shape
+        ctx.beginPath();
+        for(let i = -headWidth; i < headWidth; i+=4) {
+            ctx.moveTo(i, -headHeight); ctx.lineTo(i, headHeight);
+        }
+        for(let i = -headHeight; i < headHeight; i+=6) {
+            ctx.moveTo(-headWidth, i); ctx.lineTo(headWidth, i);
+        }
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.stroke();
+        ctx.restore(); // Remove clip
+
+        // Head Outline with Neon Glow
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = color;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = color;
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function drawEverything() {
+        // Clear background with trail effect
+        ctx.fillStyle = "rgba(5, 10, 21, 0.4)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Glowing Net
+        ctx.beginPath();
+        ctx.setLineDash([15, 15]);
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.2)";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#00e5ff";
+        ctx.stroke();
+        ctx.setLineDash([]); // Reset line dash
+        ctx.shadowBlur = 0;
+
+        drawParticles();
+
+        if(!isGameOver) {
+            // Draw Rackets
+            drawRacket(comp.x, comp.y, comp.color, false, comp.swingAngle);
+            drawRacket(user.x, user.y, user.color, true, user.swingAngle);
+
+            // Draw Energy Ball
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = ball.color;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#ffffff";
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    function gameLoop() {
+        moveEverything();
+        drawEverything();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // Start Game
+    gameLoop();
+
+</script>
+</body>
+</html>
+
+
