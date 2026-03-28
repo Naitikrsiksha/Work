@@ -569,7 +569,9 @@ const aioData = {
         {
             keywords: ["nalla", "berozgaar", "jobless", "vella"],
             answer: "Main 24/7 duty par hu, bina kisi chhutti ya salary ke. Tum apna batao, aaj kitna time waste kiya internet par? Aao ek game hi khel lo, thoda timepass ho jayega."
-        }
+        },
+        keywords:["hame game khelna hai"],
+        answer:"haan to aap bas bataiye ki aap kon sa game khelenge ham tayar hai🙂"}
 
 
 
