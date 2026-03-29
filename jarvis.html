@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
     
-    <!-- LINK TO SAME LOGIC FILE -->
     <script src="aio.js"></script>
 
     <style>
@@ -18,13 +17,11 @@
             justify-content: center; overflow: hidden;
         }
 
-        /* Top Bar */
         .top-bar { position: absolute; top: 0; width: 100%; padding: 20px; display: flex; justify-content: space-between; z-index: 10; }
         .back-btn { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 20px; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
         .back-btn:hover { color: #ff2d78; }
 
-        /* The ARC Reactor / Glowing Mic UI */
-        .reactor-container { position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin-bottom: 50px; }
+        .reactor-container { position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; }
 
         .mic-btn {
             width: 120px; height: 120px; background: rgba(0, 229, 255, 0.1); border: 2px solid #00e5ff;
@@ -45,7 +42,6 @@
             100% { transform: scale(1); box-shadow: 0 0 50px rgba(255, 45, 120, 0.5); }
         }
 
-        /* Rings */
         .ring { position: absolute; border-radius: 50%; border: 1px solid transparent; pointer-events: none; }
         .ring1 { width: 160px; height: 160px; border-top: 2px solid #00e5ff; border-bottom: 2px solid #00e5ff; animation: rotate1 4s linear infinite; }
         .ring2 { width: 190px; height: 190px; border-left: 2px solid rgba(0, 229, 255, 0.5); border-right: 2px solid rgba(0, 229, 255, 0.5); animation: rotate2 6s linear infinite; }
@@ -53,7 +49,6 @@
         @keyframes rotate1 { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes rotate2 { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
 
-        /* Output Text */
         #statusText { font-family: 'Orbitron'; font-size: 16px; letter-spacing: 2px; color: rgba(255,255,255,0.6); margin-bottom: 20px; text-transform: uppercase; text-align: center; }
         #transcriptBox {
             width: 90%; max-width: 500px; min-height: 100px; background: rgba(255,255,255,0.02);
@@ -64,6 +59,14 @@
         
         .user-text { opacity: 0.6; font-size: 16px; font-style: italic; }
         .ai-response-text { color: #00e5ff; font-weight: bold; }
+
+        /* HACKER DEBUGGER PANEL */
+        #debugPanel {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 120px;
+            background: rgba(0, 15, 0, 0.9); color: #0f0; font-family: monospace;
+            font-size: 11px; padding: 10px; overflow-y: auto; z-index: 100;
+            border-top: 2px solid #0f0; text-align: left; line-height: 1.3;
+        }
     </style>
 </head>
 <body>
@@ -87,6 +90,11 @@
         <div id="aiSaid" class="ai-response-text">Awaiting Voice Input...</div>
     </div>
 
+    <!-- Naya Debug Panel (Niche dikhega) -->
+    <div id="debugPanel">
+        <div>> SYSTEM BOOT COMPLETE.</div>
+    </div>
+
 <script>
     const games = [
         { id: "1", name: "Bubble Shooter", file: "bubbles.html", tags: ["bubble", "shoot", "shooter"] },
@@ -106,40 +114,55 @@
     const statusText = document.getElementById("statusText");
     const userSaid = document.getElementById("userSaid");
     const aiSaid = document.getElementById("aiSaid");
+    const debugPanel = document.getElementById("debugPanel");
     
     let userName = localStorage.getItem("nats_username") || "Boss";
     let isListening = false;
-    let audioUnlocked = false; // Flag to check if browser audio is unlocked
+
+    // DEBUG LOGGER FUNCTION
+    function logDebug(msg) {
+        debugPanel.innerHTML += `<div>> ${msg}</div>`;
+        debugPanel.scrollTop = debugPanel.scrollHeight;
+        console.log("JARVIS DEBUG:", msg);
+    }
 
     // Speech Recognition Setup
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition;
 
     if (SpeechRecognition) {
+        logDebug("Speech API Supported!");
         recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.lang = 'hi-IN'; // Works for Hindi and English mix
+        recognition.lang = 'en-IN'; // English-India (Works best globally as fallback)
         recognition.interimResults = false;
 
         recognition.onstart = function() {
+            logDebug("Mic ON. Start speaking...");
             isListening = true;
             micBtn.classList.add("listening");
             statusText.innerText = "LISTENING... SPEAK NOW";
             statusText.style.color = "#ff2d78";
-            userSaid.innerText = "...";
         };
+
+        recognition.onaudiostart = function() { logDebug("Audio source detected..."); };
+        recognition.onspeechstart = function() { logDebug("Speech sound detected..."); };
+        recognition.onspeechend = function() { logDebug("Speech stopped..."); };
 
         recognition.onresult = function(event) {
             const transcript = event.results[0][0].transcript;
+            logDebug("RESULT CAUGHT: " + transcript);
             userSaid.innerText = `You: "${transcript}"`;
             statusText.innerText = "PROCESSING...";
             processVoiceCommand(transcript);
         };
 
         recognition.onerror = function(event) {
-            console.error("Mic Error:", event.error);
+            logDebug("CRITICAL ERROR: " + event.error);
             if (event.error === 'no-speech') {
-                statusText.innerText = "NO SPEECH DETECTED. TRY AGAIN.";
+                statusText.innerText = "NO SPEECH DETECTED.";
+            } else if (event.error === 'not-allowed') {
+                statusText.innerText = "MIC PERMISSION DENIED!";
             } else {
                 statusText.innerText = "MIC ERROR: " + event.error.toUpperCase();
             }
@@ -147,31 +170,28 @@
         };
 
         recognition.onend = function() {
+            logDebug("Mic disconnected.");
             resetMic();
         };
     } else {
-        statusText.innerText = "VOICE RECOGNITION NOT SUPPORTED";
+        logDebug("ERROR: Speech API NOT Supported on this browser/OS.");
+        statusText.innerText = "VOICE NOT SUPPORTED HERE";
         statusText.style.color = "red";
     }
 
     function toggleListen() {
-        if (!recognition) return alert("Aapka browser Voice API support nahi karta. Google Chrome use karein.");
+        if (!recognition) return alert("Browser does not support Voice.");
         
-        // 🚨 AUDIO UNLOCK TRICK FOR MOBILE BROWSERS 🚨
-        if (!audioUnlocked) {
-            let unlockUtterance = new SpeechSynthesisUtterance('');
-            window.speechSynthesis.speak(unlockUtterance);
-            audioUnlocked = true;
-        }
-
         if (isListening) {
+            logDebug("User manually stopped mic.");
             recognition.stop();
         } else {
-            window.speechSynthesis.cancel(); // Purani aawaz band karo
+            window.speechSynthesis.cancel(); 
+            logDebug("Requesting Mic Start...");
             try {
                 recognition.start();
             } catch (e) {
-                console.log("Already started or error", e);
+                logDebug("Start Error: " + e.message);
             }
         }
     }
@@ -179,13 +199,14 @@
     function resetMic() {
         isListening = false;
         micBtn.classList.remove("listening");
-        if(statusText.innerText === "PROCESSING...") return; // Let it process
+        if(statusText.innerText === "PROCESSING...") return; 
         statusText.innerText = "SYSTEM STANDBY. TAP MIC TO SPEAK.";
         statusText.style.color = "rgba(255,255,255,0.6)";
     }
 
     // Voice Output Engine
     function speakText(text, callback) {
+        logDebug("JARVIS is preparing to speak...");
         window.speechSynthesis.cancel(); 
         
         let cleanText = text.replace(/<[^>]*>?/gm, ''); 
@@ -196,35 +217,31 @@
         const synth = window.speechSynthesis;
         const utterance = new SpeechSynthesisUtterance(cleanText);
         
-        // Try to find a good voice
-        let voices = synth.getVoices();
-        let selectedVoice = voices.find(v => v.lang.includes('hi-IN') || v.lang.includes('en-IN'));
-        if(selectedVoice) utterance.voice = selectedVoice;
-
         utterance.pitch = 1.0; 
         utterance.rate = 1.0;
 
-        // Redirect logic fallback (agar audio play na ho paye kisi wajah se)
+        utterance.onstart = function() { logDebug("Speaker ON - JARVIS talking."); };
+        utterance.onerror = function(e) { logDebug("Speaker ERROR: " + e.error); };
+
         let callbackFired = false;
         function fireCallback() {
             if(!callbackFired && callback) {
                 callbackFired = true;
+                logDebug("Executing Redirect/Callback...");
                 callback();
             }
         }
 
-        utterance.onend = function() { fireCallback(); };
-        utterance.onerror = function() { fireCallback(); }; // Fail safe
+        utterance.onend = function() { logDebug("Speaker OFF."); fireCallback(); };
 
         synth.speak(utterance);
-
-        // Ultimate Fail-safe: Agar 4 second tak redirect na ho, toh force kar do
         if(callback) { setTimeout(fireCallback, 4000); }
     }
 
     function normalizeText(text) { return (text || '').toLowerCase().replace(/[^\w\sऀ-ॿ]/g, ' ').replace(/\s+/g, ' ').trim(); }
 
     function processVoiceCommand(rawText) {
+        logDebug("Processing Logic...");
         let response = "";
         let foundGame = null;
         let redirectTimeout = null;
@@ -262,8 +279,6 @@
 
         speakText(response, redirectTimeout);
     }
-
-    window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
 </script>
 </body>
 </html>
