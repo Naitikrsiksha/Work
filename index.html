@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Naitik AI v4.0 - Game Hub</title>
     
-    <!-- PWA LINKS -->
+    <!-- PWA & FAVICON LINKS (YAHAN TUMHARA LOGO HAI) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00e5ff">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8133/8133345.png">
+    <link rel="icon" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
@@ -58,18 +59,29 @@
         body.theme-rain #rainCanvas, body.theme-rain #cloudLayer { display: block; }
         body.theme-sunny #sunCanvas { display: block; }
 
-        /* ===== HEADER ===== */
+        /* ===== HEADER & CUSTOM LOGO ===== */
         .header {
-            z-index: 20; padding: 14px 16px; background: rgba(8,13,28,0.96); border-bottom: 2px solid var(--primary);
+            z-index: 20; padding: 12px 16px; background: rgba(8,13,28,0.96); border-bottom: 2px solid var(--primary);
             display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(18px); flex-shrink: 0;
             position: relative;
         }
-        .logo { font-family: 'Orbitron'; font-weight: 900; font-size: 15px; color: var(--primary); letter-spacing: 2px; text-shadow: 0 0 16px var(--primary); }
-        .header-right { display: flex; align-items: center; gap: 15px; }
         
+        /* 🚨 TUMHARI PHOTO KA CSS 🚨 */
+        .logo-img {
+            width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+            margin-right: 10px; border: 1px solid var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+        .logo { 
+            display: flex; align-items: center; font-family: 'Orbitron'; 
+            font-weight: 900; font-size: 15px; color: var(--primary); 
+            letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,229,255,0.5); 
+        }
+
+        .header-right { display: flex; align-items: center; gap: 15px; }
         .header-btn { background: none; border: none; color: rgba(226,232,240,0.7); font-size: 18px; cursor: pointer; text-decoration: none; display: flex; align-items: center; transition: 0.2s; }
         .header-btn:hover { color: var(--primary); transform: scale(1.1); }
-        .jarvis-btn { color: #ff2d78; text-shadow: 0 0 10px rgba(255,45,120,0.5); }
+        .jarvis-btn { color: #ff2d78; text-shadow: 0 0 10px rgba(255,45,120,0.5); margin-right: 5px; }
 
         .ham-btn {
             width: 36px; height: 36px; background: rgba(0,229,255,0.07); border: 1px solid var(--primary);
@@ -177,7 +189,11 @@
 
 <!-- Header -->
 <div class="header">
-    <div class="logo"><i class="fas fa-robot" style="margin-right:8px;"></i>NAITIK AI v4.0</div>
+    <div class="logo">
+        <!-- 🚨 YAHAN TUMHARI PHOTO LAG GAYI HAI 🚨 -->
+        <img src="logo.png" alt="Naitik" class="logo-img">
+        NAITIK AI v4.0
+    </div>
     <div class="header-right">
         <a href="jarvis.html" class="header-btn jarvis-btn" id="jarvisBtnTut" title="Open Voice Mode"><i class="fas fa-microphone"></i></a>
         <button class="header-btn" onclick="clearChat()" title="Clear Chat"><i class="fas fa-broom"></i></button>
@@ -320,7 +336,6 @@ function startTutorial() {
 }
 
 function showTutorialStep() {
-    // Reset all highlights
     document.querySelectorAll('.highlighter').forEach(el => el.classList.remove('highlighter'));
     
     if (currentStepIndex >= tutorialSteps.length) {
@@ -337,7 +352,6 @@ function showTutorialStep() {
     targetEl.classList.add('highlighter');
     document.getElementById('tutText').innerText = step.text;
 
-    // Arrow and Box Positioning
     if(step.dir === "up") {
         tutArrow.className = "arrow-up";
         tutBox.style.top = step.boxTop; tutBox.style.bottom = "auto";
@@ -347,11 +361,7 @@ function showTutorialStep() {
     }
 }
 
-function nextTutorialStep() {
-    currentStepIndex++;
-    showTutorialStep();
-}
-
+function nextTutorialStep() { currentStepIndex++; showTutorialStep(); }
 
 // =============================================
 // LOGIC & DATA
@@ -394,7 +404,7 @@ window.onload = () => {
     if (!userName) {
         document.getElementById("nameModal").classList.add("active");
     } else {
-        startTutorial(); // Will auto-skip if already done
+        startTutorial(); 
     }
 };
 
@@ -404,7 +414,7 @@ function saveUserName() {
         userName = input;
         localStorage.setItem("nats_username", userName);
         document.getElementById("nameModal").classList.remove("active");
-        startTutorial(); // Start Tutorial after name save
+        startTutorial(); 
     } else {
         alert("Bhai, kam se kam 2 letters ka naam toh likho!");
     }
@@ -436,7 +446,7 @@ function normalizeText(text) { return (text || '').toLowerCase().replace(/[^\w\s
 function findUnavailableGame(query) { return unavailableGames.find(game => game.aliases.some(alias => query.includes(alias))); }
 
 // ==========================================
-// 🧠 SMART TYPO TOLERANCE (Fuzzy Logic Algorithm)
+// 🧠 SMART TYPO TOLERANCE
 // ==========================================
 function getEditDistance(a, b) {
     if(a.length === 0) return b.length;
@@ -446,11 +456,8 @@ function getEditDistance(a, b) {
     for(var j = 0; j <= a.length; j++) { matrix[0][j] = j; }
     for(var i = 1; i <= b.length; i++) {
         for(var j = 1; j <= a.length; j++) {
-            if(b.charAt(i-1) === a.charAt(j-1)) {
-                matrix[i][j] = matrix[i-1][j-1];
-            } else {
-                matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1));
-            }
+            if(b.charAt(i-1) === a.charAt(j-1)) { matrix[i][j] = matrix[i-1][j-1]; } 
+            else { matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1)); }
         }
     }
     return matrix[b.length][a.length];
@@ -470,7 +477,6 @@ function findGame(query) {
     const direct = games.find(g => nQuery.includes(normalizeText(g.name)) || g.tags.some(tag => nQuery.includes(tag)));
     if (direct) return direct;
     
-    // Fuzzy Logic (Typo tolerance)
     let closestGame = null; let minDistance = 999;
     games.forEach(g => {
         let dist = getEditDistance(nQuery, normalizeText(g.name));
@@ -504,9 +510,7 @@ function startHackerMode() {
     const sequence = [ "INITIALIZING NATS ENGINE KERNEL...", "BYPASSING GLOBAL SECURITY PROTOCOLS... [OK]", "UPLINK ESTABLISHED WITH SATELLITE VIDTO-7...", "DECRYPTING ENEMY MAINFRAME...", "DOWNLOADING TOP SECRET FILES... 14%", "DOWNLOADING TOP SECRET FILES... 89%", "DOWNLOAD COMPLETE.", "OVERRIDING SYSTEM ADMIN PRIVILEGES..." ];
     let delay = 500;
     sequence.forEach((text) => {
-        setTimeout(() => {
-            const line = document.createElement("div"); line.className = "hacker-line"; line.innerText = "> " + text; hTerm.appendChild(line);
-        }, delay);
+        setTimeout(() => { const line = document.createElement("div"); line.className = "hacker-line"; line.innerText = "> " + text; hTerm.appendChild(line); }, delay);
         delay += 800 + Math.random() * 500;
     });
     setTimeout(() => {
@@ -551,7 +555,7 @@ function processAIResponse(rawQuery) {
     addMessage(response, 'ai');
     if (foundGame) {
         const gc = document.createElement('div'); gc.className = 'game-card';
-        gc.innerHTML = `<div style="font-weight:bold;color:var(--primary);margin-bottom:6px;">🎮 ${foundGame.name}</div><a href="${foundGame.file}" class="play-btn">${lang.play_btn}</a>`;
+        gc.innerHTML = `<div style="font-weight:bold;color:var(--primary);margin-bottom:6px;\">🎮 ${foundGame.name}</div><a href="${foundGame.file}" class="play-btn">${lang.play_btn}</a>`;
         chatContainer.appendChild(gc); chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 }
@@ -574,3 +578,5 @@ window.addEventListener('resize', () => { rsA(); if (rRun) rsR(); });
 </script>
 </body>
 </html>
+
+
