@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VIDTO V AI</title>
+    <title>VIDTO V AI - NATS Engine</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
     
@@ -61,34 +61,11 @@
         .user-text { opacity: 0.6; font-size: 16px; font-style: italic; }
         .ai-response-text { color: #00e5ff; font-weight: bold; }
 
-        /* HACKER DEBUGGER PANEL */
         #debugPanel {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 100px;
             background: rgba(0, 15, 0, 0.9); color: #0f0; font-family: monospace;
             font-size: 11px; padding: 10px; overflow-y: auto; z-index: 100;
             border-top: 2px solid #0f0; text-align: left; line-height: 1.3;
-        }
-
-        /* PERMISSION ERROR MODAL */
-        #permissionModal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s;
-        }
-        #permissionModal.active { opacity: 1; pointer-events: all; }
-        .modal-box {
-            background: rgba(10, 16, 32, 0.95); border: 2px solid #ff2d78;
-            border-radius: 15px; padding: 30px 20px; text-align: center; width: 90%; max-width: 400px;
-            box-shadow: 0 0 40px rgba(255, 45, 120, 0.3);
-        }
-        .modal-box h2 { font-family: 'Orbitron'; color: #ff2d78; margin-bottom: 15px; font-size: 22px; }
-        .modal-box p { color: #e2e8f0; margin-bottom: 15px; font-size: 15px; line-height: 1.5; }
-        .modal-box .instruction { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; color: #00e5ff; font-size: 14px; text-align: left; margin-bottom: 20px; }
-        .modal-box button {
-            width: 100%; background: #00e5ff; color: #000; border: none;
-            padding: 14px; font-size: 16px; font-family: 'Orbitron'; font-weight: bold; border-radius: 10px;
-            cursor: pointer; box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
         }
     </style>
 </head>
@@ -96,7 +73,7 @@
 
     <div class="top-bar">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Hub</a>
-        <div style="font-family: 'Orbitron'; color: #00e5ff; font-weight: 900; letter-spacing: 3px;">JARVIS SYSTEM</div>
+        <div style="font-family: 'Orbitron'; color: #00e5ff; font-weight: 900; letter-spacing: 3px;">VIDTO V AI</div>
     </div>
 
     <div class="reactor-container">
@@ -114,23 +91,7 @@
     </div>
 
     <div id="debugPanel">
-        <div>> SYSTEM BOOT COMPLETE.</div>
-    </div>
-
-    <!-- NAYA SMART PERMISSION MODAL -->
-    <div id="permissionModal">
-        <div class="modal-box">
-            <h2><i class="fas fa-microphone-slash"></i> MIC BLOCKED!</h2>
-            <p>Aapke browser ne Microphone ko block kar rakha hai, isliye JARVIS aapki aawaz nahi sun pa raha.</p>
-            <div class="instruction">
-                <strong>Ise Theek Kaise Karein:</strong><br><br>
-                1. Upar URL bar ke bagal me <strong>Lock (🔒)</strong> icon par click karein.<br>
-                2. <strong>Permissions / Site Settings</strong> me jayein.<br>
-                3. <strong>Microphone</strong> ko <strong>Allow</strong> karein.<br>
-                4. Page ko Refresh karein.
-            </div>
-            <button onclick="closePermissionModal()">THIK HAI, SAMAJH GAYA</button>
-        </div>
+        <div>> VIDTO V AI BOOT COMPLETE.</div>
     </div>
 
 <script>
@@ -153,19 +114,14 @@
     const userSaid = document.getElementById("userSaid");
     const aiSaid = document.getElementById("aiSaid");
     const debugPanel = document.getElementById("debugPanel");
-    const permissionModal = document.getElementById("permissionModal");
     
     let userName = localStorage.getItem("nats_username") || "Boss";
     let isListening = false;
-    let audioUnlocked = false;
+    let clickTimeout = false; // Double click/touch rokne ke liye
 
     function logDebug(msg) {
         debugPanel.innerHTML += `<div>> ${msg}</div>`;
         debugPanel.scrollTop = debugPanel.scrollHeight;
-    }
-
-    function closePermissionModal() {
-        permissionModal.classList.remove("active");
     }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -175,7 +131,7 @@
         logDebug("Speech API Supported!");
         recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.lang = 'en-IN'; // Best for Indian English/Hindi mix
+        recognition.lang = 'en-IN'; // Works best for Indian English/Hindi mix
         recognition.interimResults = false;
 
         recognition.onstart = function() {
@@ -199,8 +155,7 @@
             logDebug("ERROR: " + event.error);
             if (event.error === 'not-allowed') {
                 statusText.innerText = "MIC PERMISSION DENIED!";
-                // SHOW SMART MODAL TO USER
-                permissionModal.classList.add("active");
+                alert("Please enable Microphone permissions in Chrome Settings!");
             } else if (event.error === 'no-speech') {
                 statusText.innerText = "NO SPEECH DETECTED.";
             } else {
@@ -219,32 +174,40 @@
         statusText.style.color = "red";
     }
 
+    // MASTER FUNCTION TO START MIC (Double touch aur audio conflict fix ke sath)
     function toggleListen(e) {
         if(e) e.preventDefault(); 
+        
+        // Agar pehle se process ho raha hai toh ruk jao (Double tap fix)
+        if(clickTimeout) return;
+        clickTimeout = true;
+        setTimeout(() => { clickTimeout = false; }, 500); // 500ms block
+
         logDebug("Button Tapped!");
 
         if (!recognition) return alert("Browser does not support Voice.");
         
-        if (!audioUnlocked) {
-            try {
-                let unlockUtterance = new SpeechSynthesisUtterance('');
-                window.speechSynthesis.speak(unlockUtterance);
-                audioUnlocked = true;
-                logDebug("Audio Unlocked.");
-            } catch(err) {}
-        }
-
         if (isListening) {
             recognition.stop();
         } else {
+            // Speaker ko bilkul shant karo aur uske baad Mic chalu karo
             window.speechSynthesis.cancel(); 
             logDebug("Requesting Mic Start...");
-            try { recognition.start(); } catch (err) { logDebug("Start Error: " + err.message); }
+            
+            // 200ms ka delay taaki speaker poori tarah band ho jaye
+            setTimeout(() => {
+                try { recognition.start(); } 
+                catch (err) { logDebug("Start Error: " + err.message); }
+            }, 200);
         }
     }
 
-    micBtn.addEventListener("click", toggleListen);
+    // Sirf touchstart use karenge taaki clash na ho
     micBtn.addEventListener("touchstart", function(e) { toggleListen(e); }, {passive: false});
+    // Agar PC par hai toh click use hoga
+    micBtn.addEventListener("mousedown", function(e) { 
+        if(window.innerWidth > 768) toggleListen(e); 
+    });
 
     function resetMic() {
         isListening = false;
@@ -255,11 +218,11 @@
     }
 
     function speakText(text, callback) {
-        logDebug("Preparing JARVIS Voice...");
+        logDebug("Preparing VIDTO Voice...");
         window.speechSynthesis.cancel(); 
         
         let cleanText = text.replace(/<[^>]*>?/gm, ''); 
-        aiSaid.innerHTML = "JARVIS: " + cleanText;
+        aiSaid.innerHTML = "VIDTO V AI: " + cleanText;
         statusText.innerText = "SPEAKING...";
         statusText.style.color = "#00e5ff";
 
@@ -277,6 +240,7 @@
             }
         }
         utterance.onend = function() { logDebug("Finished Speaking."); fireCallback(); };
+        utterance.onerror = function() { logDebug("Speech Interrupted."); fireCallback(); };
 
         synth.speak(utterance);
         if(callback) { setTimeout(fireCallback, 4000); }
@@ -304,7 +268,7 @@
             response = `Opening ${foundGame.name} right away, ${userName}.`;
             redirectTimeout = () => { window.location.href = foundGame.file; };
         } else if (/\b(hello|hi|hey|namaste)\b/.test(query)) {
-            response = `Hello ${userName}. I am online and ready.`;
+            response = `Hello ${userName}. I am VIDTO V AI. How can I help you?`;
         } else {
             let aioMatch = null;
             if (typeof aioData !== 'undefined' && aioData.qaList) {
