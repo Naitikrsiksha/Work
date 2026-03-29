@@ -11,7 +11,7 @@ const aioData = {
     // ---------------------------------------------------------
     // Ye message chat open hote hi user ko sabse upar dikhega.
     // Agar tumhe koi message nahi dikhana, toh isko khali chhod do aise: ""
-    customInstruction: "📢 Welcome! Aaj maine 4 naye games add kiye hain, zarur try karein!",
+    customInstruction: "📢 Welcome!! aap sabhi logo ko bata du agar koi bugs ya error aapko show hota hai to developer Naitik se sampark kare Dhanyawad 🤚",
 
 
     // ---------------------------------------------------------
@@ -24,7 +24,7 @@ const aioData = {
     qaList: [
         {
             keywords: ["tumhara naam", "who are you", "naam kya hai"],
-            answer: "Mera naam Game hub AI hai, mujhe Naitik Singh ne game khelne ke liye banaya hai.."
+            answer: "Mera naam VIDTO V AI hai, mujhe Naitik Singh ne game khelne ke liye banaya hai.."
         },
         {
             keywords: ["creator", "kisne banaya", "owner", "baap kaun hai"],
