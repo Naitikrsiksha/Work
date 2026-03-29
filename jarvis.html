@@ -13,55 +13,28 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background-color: #010308;
-            color: #00e5ff;
-            font-family: 'Rajdhani', sans-serif;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            background-color: #010308; color: #00e5ff; font-family: 'Rajdhani', sans-serif;
+            height: 100vh; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; overflow: hidden;
         }
 
         /* Top Bar */
-        .top-bar {
-            position: absolute;
-            top: 0; width: 100%;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            z-index: 10;
-        }
-        .back-btn {
-            color: rgba(255,255,255,0.5); text-decoration: none; font-size: 20px;
-            transition: 0.3s; display: flex; align-items: center; gap: 8px;
-        }
+        .top-bar { position: absolute; top: 0; width: 100%; padding: 20px; display: flex; justify-content: space-between; z-index: 10; }
+        .back-btn { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 20px; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
         .back-btn:hover { color: #ff2d78; }
 
         /* The ARC Reactor / Glowing Mic UI */
-        .reactor-container {
-            position: relative;
-            width: 200px; height: 200px;
-            display: flex; justify-content: center; align-items: center;
-            margin-bottom: 50px;
-        }
+        .reactor-container { position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin-bottom: 50px; }
 
         .mic-btn {
-            width: 120px; height: 120px;
-            background: rgba(0, 229, 255, 0.1);
-            border: 2px solid #00e5ff;
-            border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 45px; color: #00e5ff;
-            cursor: pointer; z-index: 5;
+            width: 120px; height: 120px; background: rgba(0, 229, 255, 0.1); border: 2px solid #00e5ff;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 45px; color: #00e5ff; cursor: pointer; z-index: 5;
             box-shadow: 0 0 30px rgba(0, 229, 255, 0.3), inset 0 0 20px rgba(0, 229, 255, 0.2);
             transition: all 0.3s;
         }
-
         .mic-btn.listening {
-            background: rgba(255, 45, 120, 0.2);
-            border-color: #ff2d78; color: #ff2d78;
+            background: rgba(255, 45, 120, 0.2); border-color: #ff2d78; color: #ff2d78;
             box-shadow: 0 0 50px rgba(255, 45, 120, 0.5), inset 0 0 30px rgba(255, 45, 120, 0.4);
             animation: pulse 1.5s infinite;
         }
@@ -73,10 +46,7 @@
         }
 
         /* Rings */
-        .ring {
-            position: absolute; border-radius: 50%; border: 1px solid transparent;
-            pointer-events: none;
-        }
+        .ring { position: absolute; border-radius: 50%; border: 1px solid transparent; pointer-events: none; }
         .ring1 { width: 160px; height: 160px; border-top: 2px solid #00e5ff; border-bottom: 2px solid #00e5ff; animation: rotate1 4s linear infinite; }
         .ring2 { width: 190px; height: 190px; border-left: 2px solid rgba(0, 229, 255, 0.5); border-right: 2px solid rgba(0, 229, 255, 0.5); animation: rotate2 6s linear infinite; }
 
@@ -84,20 +54,16 @@
         @keyframes rotate2 { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
 
         /* Output Text */
-        #statusText {
-            font-family: 'Orbitron'; font-size: 18px; letter-spacing: 2px;
-            color: rgba(255,255,255,0.6); margin-bottom: 20px; text-transform: uppercase;
-        }
-
+        #statusText { font-family: 'Orbitron'; font-size: 16px; letter-spacing: 2px; color: rgba(255,255,255,0.6); margin-bottom: 20px; text-transform: uppercase; text-align: center; }
         #transcriptBox {
-            width: 90%; max-width: 500px; min-height: 80px;
-            background: rgba(255,255,255,0.02); border: 1px solid rgba(0, 229, 255, 0.2);
-            border-radius: 10px; padding: 20px; text-align: center;
-            font-size: 20px; line-height: 1.4; color: #fff;
+            width: 90%; max-width: 500px; min-height: 100px; background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 10px; padding: 20px;
+            text-align: center; font-size: 20px; line-height: 1.4; color: #fff;
+            display: flex; flex-direction: column; justify-content: center; gap: 10px;
         }
         
-        .ai-response-text { color: #00e5ff; margin-top: 10px; font-weight: bold; }
-
+        .user-text { opacity: 0.6; font-size: 16px; font-style: italic; }
+        .ai-response-text { color: #00e5ff; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -115,26 +81,25 @@
         </div>
     </div>
 
-    <div id="statusText">SYSTEM STANDBY. TAP MIC TO SPEAK.</div>
+    <div id="statusText">SYSTEM READY. TAP MIC TO SPEAK.</div>
     <div id="transcriptBox">
-        <div id="userSaid" style="opacity: 0.6; font-size: 16px;"></div>
-        <div id="aiSaid" class="ai-response-text">Welcome to Voice Mode.</div>
+        <div id="userSaid" class="user-text">Listening will appear here...</div>
+        <div id="aiSaid" class="ai-response-text">Awaiting Voice Input...</div>
     </div>
 
 <script>
-    // Copy Game Data to JARVIS so it knows what to launch
     const games = [
-        { id: "1", name: "Bubble Shooter",          file: "bubbles.html",     tags: ["bubble", "shoot", "shooter"] },
-        { id: "2", name: "Raja Mantri Chor Sipahi", file: "chor.html",        tags: ["raja", "mantri", "chor", "sipahi"] },
-        { id: "3", name: "Classic Snake",           file: "snakeus.html",     tags: ["snake", "saanp", "snk"] },
-        { id: "4", name: "Hill Climb Racer",        file: "geminihill.html",  tags: ["car", "hill", "pahaad", "racer"] },
-        { id: "5", name: "Yuddh Bhoomi",            file: "gunish.html",      tags: ["war", "army", "gunish", "battle"] },
-        { id: "6", name: "Sipahi Game",             file: "sipahi.html",      tags: ["sipahi", "police", "soldier"] },
-        { id: "7", name: "Block Stacker",           file: "blocks.html",      tags: ["block", "tetris", "box", "stack", "bachpan"] },
-        { id: "8", name: "Sci-Fi Badminton",        file: "tennis.html",      tags: ["tennis", "badminton", "racket", "smash", "sports"] },
-        { id: "9", name: "Neon Brick Breaker Pro",  file: "bricks.html",      tags: ["brick", "breaker", "ball", "paddle", "neon"] },
-        { id: "10", name: "Neon Mind Puzzle",       file: "memory.html",      tags: ["memory", "puzzle", "mind", "color", "brain", "dimag"] },
-        { id: "11", name: "T-Rex Runner Pro",       file: "dino.html",        tags: ["dino", "runner", "jump", "trex", "offline", "dinosaur", "chrome"] }
+        { id: "1", name: "Bubble Shooter", file: "bubbles.html", tags: ["bubble", "shoot", "shooter"] },
+        { id: "2", name: "Raja Mantri Chor Sipahi", file: "chor.html", tags: ["raja", "mantri", "chor", "sipahi"] },
+        { id: "3", name: "Classic Snake", file: "snakeus.html", tags: ["snake", "saanp", "snk"] },
+        { id: "4", name: "Hill Climb Racer", file: "geminihill.html", tags: ["car", "hill", "pahaad", "racer"] },
+        { id: "5", name: "Yuddh Bhoomi", file: "gunish.html", tags: ["war", "army", "gunish", "battle"] },
+        { id: "6", name: "Sipahi Game", file: "sipahi.html", tags: ["sipahi", "police", "soldier"] },
+        { id: "7", name: "Block Stacker", file: "blocks.html", tags: ["block", "tetris", "box", "stack", "bachpan"] },
+        { id: "8", name: "Sci-Fi Badminton", file: "tennis.html", tags: ["tennis", "badminton", "racket", "smash", "sports"] },
+        { id: "9", name: "Neon Brick Breaker Pro", file: "bricks.html", tags: ["brick", "breaker", "ball", "paddle", "neon"] },
+        { id: "10", name: "Neon Mind Puzzle", file: "memory.html", tags: ["memory", "puzzle", "mind", "color", "brain", "dimag"] },
+        { id: "11", name: "T-Rex Runner Pro", file: "dino.html", tags: ["dino", "runner", "jump", "trex", "offline", "dinosaur", "chrome"] }
     ];
 
     const micBtn = document.getElementById("micBtn");
@@ -144,6 +109,7 @@
     
     let userName = localStorage.getItem("nats_username") || "Boss";
     let isListening = false;
+    let audioUnlocked = false; // Flag to check if browser audio is unlocked
 
     // Speech Recognition Setup
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -152,24 +118,31 @@
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.lang = 'hi-IN'; // Understands Hindi and English mix
+        recognition.lang = 'hi-IN'; // Works for Hindi and English mix
         recognition.interimResults = false;
 
         recognition.onstart = function() {
             isListening = true;
             micBtn.classList.add("listening");
-            statusText.innerText = "LISTENING...";
+            statusText.innerText = "LISTENING... SPEAK NOW";
             statusText.style.color = "#ff2d78";
+            userSaid.innerText = "...";
         };
 
         recognition.onresult = function(event) {
             const transcript = event.results[0][0].transcript;
-            userSaid.innerText = '"' + transcript + '"';
+            userSaid.innerText = `You: "${transcript}"`;
+            statusText.innerText = "PROCESSING...";
             processVoiceCommand(transcript);
         };
 
         recognition.onerror = function(event) {
-            statusText.innerText = "ERROR: " + event.error;
+            console.error("Mic Error:", event.error);
+            if (event.error === 'no-speech') {
+                statusText.innerText = "NO SPEECH DETECTED. TRY AGAIN.";
+            } else {
+                statusText.innerText = "MIC ERROR: " + event.error.toUpperCase();
+            }
             resetMic();
         };
 
@@ -177,51 +150,76 @@
             resetMic();
         };
     } else {
-        aiSaid.innerText = "Error: Your browser does not support Voice Recognition.";
+        statusText.innerText = "VOICE RECOGNITION NOT SUPPORTED";
+        statusText.style.color = "red";
     }
 
     function toggleListen() {
-        if (!recognition) return alert("Speech API not supported here.");
+        if (!recognition) return alert("Aapka browser Voice API support nahi karta. Google Chrome use karein.");
+        
+        // 🚨 AUDIO UNLOCK TRICK FOR MOBILE BROWSERS 🚨
+        if (!audioUnlocked) {
+            let unlockUtterance = new SpeechSynthesisUtterance('');
+            window.speechSynthesis.speak(unlockUtterance);
+            audioUnlocked = true;
+        }
+
         if (isListening) {
             recognition.stop();
         } else {
-            // Stop any ongoing speech before listening again
-            window.speechSynthesis.cancel();
-            recognition.start();
+            window.speechSynthesis.cancel(); // Purani aawaz band karo
+            try {
+                recognition.start();
+            } catch (e) {
+                console.log("Already started or error", e);
+            }
         }
     }
 
     function resetMic() {
         isListening = false;
         micBtn.classList.remove("listening");
+        if(statusText.innerText === "PROCESSING...") return; // Let it process
         statusText.innerText = "SYSTEM STANDBY. TAP MIC TO SPEAK.";
         statusText.style.color = "rgba(255,255,255,0.6)";
     }
 
-    // Voice to Text Engine
+    // Voice Output Engine
     function speakText(text, callback) {
-        window.speechSynthesis.cancel(); // Stop current speech
+        window.speechSynthesis.cancel(); 
         
-        // Remove HTML tags for speaking
         let cleanText = text.replace(/<[^>]*>?/gm, ''); 
-        aiSaid.innerHTML = cleanText;
+        aiSaid.innerHTML = "JARVIS: " + cleanText;
+        statusText.innerText = "SPEAKING...";
+        statusText.style.color = "#00e5ff";
 
         const synth = window.speechSynthesis;
         const utterance = new SpeechSynthesisUtterance(cleanText);
         
-        // Try to find a Hindi or Indian English voice
+        // Try to find a good voice
         let voices = synth.getVoices();
         let selectedVoice = voices.find(v => v.lang.includes('hi-IN') || v.lang.includes('en-IN'));
         if(selectedVoice) utterance.voice = selectedVoice;
 
-        utterance.pitch = 1.1; // Slightly futuristic
+        utterance.pitch = 1.0; 
         utterance.rate = 1.0;
 
-        utterance.onend = function() {
-            if (callback) callback();
-        };
+        // Redirect logic fallback (agar audio play na ho paye kisi wajah se)
+        let callbackFired = false;
+        function fireCallback() {
+            if(!callbackFired && callback) {
+                callbackFired = true;
+                callback();
+            }
+        }
+
+        utterance.onend = function() { fireCallback(); };
+        utterance.onerror = function() { fireCallback(); }; // Fail safe
 
         synth.speak(utterance);
+
+        // Ultimate Fail-safe: Agar 4 second tak redirect na ho, toh force kar do
+        if(callback) { setTimeout(fireCallback, 4000); }
     }
 
     function normalizeText(text) { return (text || '').toLowerCase().replace(/[^\w\sऀ-ॿ]/g, ' ').replace(/\s+/g, ' ').trim(); }
@@ -234,10 +232,8 @@
         const query = normalizeText(rawText);
         const numCheck = rawText.trim();
 
-        // 1. Check for explicit numbers first
         foundGame = games.find(g => g.id === numCheck);
 
-        // 2. Text matching
         if (!foundGame) {
             let exact = games.find(g => normalizeText(g.name) === query);
             if (exact) foundGame = exact;
@@ -247,36 +243,29 @@
             }
         }
 
-        // 3. Logic handling
         if (foundGame) {
             response = `Opening ${foundGame.name} right away, ${userName}.`;
-            // Redirect after speaking
             redirectTimeout = () => { window.location.href = foundGame.file; };
         } else if (/\b(hello|hi|hey|namaste)\b/.test(query)) {
-            response = `Hello ${userName}. I am ready. Which game do you want to play?`;
+            response = `Hello ${userName}. I am online and ready.`;
         } else {
-            // Check AIO Logic
             let aioMatch = null;
             if (typeof aioData !== 'undefined' && aioData.qaList) {
                 aioMatch = aioData.qaList.find(qa => qa.keywords.some(k => query.includes(normalizeText(k))));
             }
             if (aioMatch) {
-                response = aioMatch.answer.replace("Bhai", userName);
+                response = aioMatch.answer.replace(/Bhai/g, userName).replace(/bhai/g, userName);
             } else {
-                response = `Sorry ${userName}, I didn't catch that. Try asking for a game name.`;
+                response = `Sorry ${userName}, I didn't catch that. Please try again.`;
             }
         }
 
-        // Output via Voice
         speakText(response, redirectTimeout);
     }
 
-    // Ensure voices are loaded (Chrome quirk)
-    window.speechSynthesis.onvoiceschanged = function() {
-        window.speechSynthesis.getVoices();
-    };
-
+    window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
 </script>
 </body>
 </html>
+
 
