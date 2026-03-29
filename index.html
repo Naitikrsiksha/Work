@@ -97,7 +97,7 @@
             z-index: 15; font-family: sans-serif; letter-spacing: 0.5px;
         }
 
-        /* ===== SETTINGS MENU (Themes & Language) ===== */
+        /* ===== SETTINGS MENU ===== */
         #settingsMenu {
             position: fixed; top: 62px; right: 12px; z-index: 200;
             background: rgba(6,12,26,0.97); border: 1px solid var(--primary); border-radius: 14px;
@@ -141,8 +141,12 @@
         input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,229,255,0.1); }
         .send-btn { width: 50px; height: 50px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-size: 18px; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 18px rgba(0,229,255,0.28); transition: 0.15s; }
         .send-btn:active { transform: scale(0.91); }
+        .mic-btn { width: 50px; height: 50px; border-radius: 12px; border: 1px solid var(--primary); background: rgba(0,229,255,0.08); color: var(--primary); font-size: 18px; cursor: pointer; flex-shrink: 0; transition: 0.15s; }
+        .mic-btn:active { transform: scale(0.91); }
+        .mic-btn.listening { background: rgba(255,45,120,0.18); border-color: #ff2d78; color: #ff2d78; animation: micPulse 1s infinite; }
+        @keyframes micPulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,45,120,0.4)} 50%{box-shadow:0 0 0 8px rgba(255,45,120,0)} }
 
-        /* ===== USER MEMORY MODAL (v4) ===== */
+        /* ===== USER MEMORY MODAL ===== */
         #nameModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s; }
         #nameModal.active { opacity: 1; pointer-events: all; }
         .modal-box { background: rgba(10, 16, 32, 0.95); border: 2px solid var(--primary); border-radius: 15px; padding: 30px 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 0 40px rgba(0, 229, 255, 0.2); }
@@ -156,10 +160,33 @@
         .typing-indicator span:nth-child(1) { animation-delay: -0.32s; } .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 
+        /* =========================================
+           🚨 SECRET HACKER MODE (GOD MODE) UI 🚨
+           ========================================= */
+        #hackerScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; display: none; flex-direction: column;
+        }
+        #matrixCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.8; }
+        #hackerTerminal {
+            position: relative; z-index: 2; padding: 30px; font-family: monospace;
+            color: #0f0; font-size: 16px; text-shadow: 0 0 5px #0f0; flex: 1;
+            overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        .hacker-line { margin-bottom: 8px; opacity: 0; animation: typeLine 0.1s forwards; }
+        .hacker-alert { color: #f00; font-size: 24px; text-shadow: 0 0 10px #f00; font-weight: bold; text-align: center; margin-top: 30px; opacity: 0; animation: typeLine 0.3s 0.5s forwards; white-space: pre-line; }
+        @keyframes typeLine { to { opacity: 1; } }
+        
         @media (min-width: 768px) { #chat-container { width: 60%; margin: 0 auto; } .bottom-ui { width: 60%; left: 20%; right: 20%; border-radius: 20px 20px 0 0; } }
     </style>
 </head>
 <body class="theme-deep-space">
+
+<!-- 🚨 SECRET HACKER SCREEN 🚨 -->
+<div id="hackerScreen">
+    <canvas id="matrixCanvas"></canvas>
+    <div id="hackerTerminal"></div>
+</div>
 
 <!-- Background Canvases -->
 <div class="nebula neb1"></div><div class="nebula neb2"></div><div class="nebula neb3"></div>
@@ -173,7 +200,7 @@
     <div class="logo"><i class="fas fa-robot" style="margin-right:8px;"></i>NAITIK AI v4.0</div>
     <div class="header-right">
         <!-- JARVIS BUTTON -->
-        <a href="jarvis.html" class="header-btn jarvis-btn" title="Open Jarvis Voice Mode"><i class="fas fa-microphone"></i></a>
+        <a href="jarvis.html" class="header-btn jarvis-btn" title="Open Voice Mode"><i class="fas fa-microphone"></i></a>
         <button class="header-btn" onclick="clearChat()" title="Clear Chat"><i class="fas fa-broom"></i></button>
         <div class="ham-btn" id="hamBtn" onclick="toggleMenu()">
             <span></span><span></span><span></span>
@@ -210,6 +237,7 @@
 <div class="bottom-ui">
     <div class="input-area">
         <input type="text" id="userInput" placeholder="Sawal, Game ka naam ya Number likhein..." onkeypress="if(event.key==='Enter') handleInput()">
+        <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Voice Input"><i class="fas fa-microphone"></i></button>
         <button class="send-btn" onclick="handleInput()"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
@@ -248,6 +276,7 @@ function setTheme(t) {
     document.body.className = 'theme-' + t;
     currentTheme = t;
     localStorage.setItem('theme', t);
+    aActive = (t === 'deep-space');
 
     const root = document.documentElement;
     const themes = {
@@ -292,11 +321,10 @@ const typingIndicator = document.getElementById('typingIndicator');
 
 let userName = localStorage.getItem("nats_username");
 
-// i18n Dictionary updated with v4 userName integration
 const i18n = {
     'hi': {
         placeholder: "सवाल, गेम का नाम या नंबर लिखें...",
-        greeting: (name) => `🚀 नमस्ते <strong>${name}</strong>! मैं <strong>Game Hub AI v4</strong> हूँ।<br><br>गेम ओपन करने के लिए उसका नाम या उसका <strong>नंबर</strong> टाइप करें:<br><br>`,
+        greeting: (name) => `🚀 नमस्ते <strong>${name}</strong>! मैं <strong>VIDTO V AI</strong> हूँ।<br><br>गेम ओपन करने के लिए उसका नाम या उसका <strong>नंबर</strong> टाइप करें:<br><br>`,
         found: (name) => `मिल गया! <strong>${name}</strong> तैयार है। खेलने के लिए नीचे बटन दबाएं।`,
         play_btn: "▶ अभी खेलें (FULL SCREEN)",
         list: (name) => `ये रही उपलब्ध गेम्स की सूची <strong>${name}</strong>:<br>`,
@@ -305,7 +333,7 @@ const i18n = {
     },
     'en': {
         placeholder: "Type a question, game name or number...",
-        greeting: (name) => `🚀 Hello <strong>${name}</strong>! I am <strong>Game Hub AI v4</strong>.<br><br>Type a game name or its <strong>Number</strong> to open:<br><br>`,
+        greeting: (name) => `🚀 Hello <strong>${name}</strong>! I am <strong>VIDTO V AI</strong>.<br><br>Type a game name or its <strong>Number</strong> to open:<br><br>`,
         found: (name) => `Found it! <strong>${name}</strong> is ready. Click the button below to play.`,
         play_btn: "▶ PLAY NOW (FULL SCREEN)",
         list: (name) => `Here is the list of available games for you, <strong>${name}</strong>:<br>`,
@@ -314,8 +342,8 @@ const i18n = {
     },
     'hinglish': {
         placeholder: "Sawal, Game ka naam ya Number likhein...",
-        greeting: (name) => `🚀 Hello <strong>${name}</strong>! Main <strong>Game Hub AI v4</strong> hoon.<br><br>Game open karne ke liye uska naam ya uska <strong>Number</strong> type karein:<br><br>`,
-        found: (name) => `Mil gaya ${name}! <strong>${name}</strong> ready hai. Niche button dabaiye.`,
+        greeting: (name) => `🚀 Hello <strong>${name}</strong>! Main <strong>VIDTO V AI</strong> hoon.<br><br>Game open karne ke liye uska naam ya uska <strong>Number</strong> type karein:<br><br>`,
+        found: (name) => `Mil gaya! <strong>${name}</strong> ready hai. Niche button dabaiye.`,
         play_btn: "▶ PLAY NOW (FULL SCREEN)",
         list: (name) => `Ye rahi available games ki list ${name}:<br>`,
         unavailable_known: (name, gameName) => `Sorry ${name}, <strong>${gameName}</strong> mere pass abhi available nahi hai.<br><br>Aap inme se number chuniye:<br>`,
@@ -343,7 +371,6 @@ const unavailableGames = [
     { name: "Free Fire", aliases: ["free fire", "ff"] }
 ];
 
-// Initialize Settings
 setTheme(currentTheme);
 setLang(currentLang);
 
@@ -366,7 +393,6 @@ function saveUserName() {
         alert("Bhai, kam se kam 2 letters ka naam toh likho!");
     }
 }
-
 function initChat() {
     chatContainer.innerHTML = '';
     const lang = i18n[currentLang];
@@ -393,6 +419,7 @@ function addMessage(html, type) {
 function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); }
 function normalizeText(text) { return (text || '').toLowerCase().replace(/[^\w\sऀ-ॿ]/g, ' ').replace(/\s+/g, ' ').trim(); }
 function findUnavailableGame(query) { return unavailableGames.find(game => game.aliases.some(alias => query.includes(alias))); }
+
 // ==========================================
 // 🧠 SMART TYPO TOLERANCE (Fuzzy Logic Algorithm)
 // ==========================================
@@ -457,17 +484,95 @@ function findGame(query) {
 }
 
 
+/* =========================================
+   🚨 THE HACKER MODE LOGIC (GOD MODE) 🚨
+   ========================================= */
+let matrixInterval = null;
+function startHackerMode() {
+    const hScreen = document.getElementById("hackerScreen");
+    const hTerm = document.getElementById("hackerTerminal");
+    hScreen.style.display = "flex";
+    hTerm.innerHTML = "";
+
+    // 1. Start Matrix Rain
+    const mC = document.getElementById("matrixCanvas");
+    const mCtx = mC.getContext("2d");
+    mC.width = window.innerWidth; mC.height = window.innerHeight;
+    const letters = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
+    const fontSize = 16;
+    const columns = mC.width / fontSize;
+    const drops = Array.from({length: columns}).fill(1);
+
+    matrixInterval = setInterval(() => {
+        mCtx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+        mCtx.fillRect(0, 0, mC.width, mC.height);
+        mCtx.fillStyle = '#0F0';
+        mCtx.font = fontSize + 'px monospace';
+        for(let i = 0; i < drops.length; i++) {
+            const text = letters.charAt(Math.floor(Math.random() * letters.length));
+            mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+            if(drops[i] * fontSize > mC.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }, 33);
+
+    // 2. Start Terminal Typing Sequence
+    const sequence = [
+        "INITIALIZING NATS ENGINE KERNEL...",
+        "BYPASSING GLOBAL SECURITY PROTOCOLS... [OK]",
+        "UPLINK ESTABLISHED WITH SATELLITE VIDTO-7...",
+        "DECRYPTING ENEMY MAINFRAME...",
+        "DOWNLOADING TOP SECRET FILES... 14%",
+        "DOWNLOADING TOP SECRET FILES... 89%",
+        "DOWNLOAD COMPLETE.",
+        "OVERRIDING SYSTEM ADMIN PRIVILEGES...",
+    ];
+
+    let delay = 500;
+    sequence.forEach((text, index) => {
+        setTimeout(() => {
+            const line = document.createElement("div");
+            line.className = "hacker-line";
+            line.innerText = "> " + text;
+            hTerm.appendChild(line);
+        }, delay);
+        delay += 800 + Math.random() * 500;
+    });
+
+    // 3. Final Reveal and Exit
+    setTimeout(() => {
+        const alertMsg = document.createElement("div");
+        alertMsg.className = "hacker-alert";
+        alertMsg.innerText = "ACCESS GRANTED\nWELCOME MASTER NAITIK";
+        hTerm.appendChild(alertMsg);
+        
+        // Return to normal after 3 seconds
+        setTimeout(() => {
+            clearInterval(matrixInterval);
+            hScreen.style.display = "none";
+            addMessage("System Override Complete. Welcome back, Boss. What is your command?", "ai");
+        }, 3500);
+
+    }, delay + 500);
+}
+
+// MAIN INPUT HANDLER
 async function handleInput() {
     const rawText = userInput.value.trim();
     if (!rawText) return;
-
     userInput.value = '';
+
+    // 🚨 CHECK FOR SECRET HACKER CODE 🚨
+    if(rawText.toLowerCase() === "/nats" || rawText.toLowerCase() === "/hack") {
+        startHackerMode();
+        return; // Stop normal processing
+    }
+
     const safeText = escapeHTML(rawText);
     addMessage(safeText, 'user');
 
     if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== "") {
-        const logText = `[${userName}] ${rawText}`;
-        fetch(GOOGLE_SHEET_URL + "?q=" + encodeURIComponent(logText), { mode: 'no-cors' }).catch(e => console.log("Log error"));
+        fetch(GOOGLE_SHEET_URL + "?name=" + encodeURIComponent(userName) + "&q=" + encodeURIComponent(rawText), { mode: 'no-cors' }).catch(e => console.log("Log error"));
     }
 
     chatContainer.appendChild(typingIndicator);
@@ -495,9 +600,8 @@ function processAIResponse(rawQuery) {
     } else if (/\b(list|naam|names|available|games|kaunse|kaun kaun|show)\b/.test(query)) {
         response = lang.list(userName) + gameListStr;
     } else {
-        foundGame = findGame(rawQuery); // Pass raw query for number check
+        foundGame = findGame(rawQuery); 
         if (foundGame) {
-            // Fix: Show actual game name in 'found' message
             response = lang.found(foundGame.name);
         } else {
             let aioMatch = null;
@@ -520,9 +624,29 @@ function processAIResponse(rawQuery) {
     }
 }
 
+let recognition = null;
+let isListening = false;
+function toggleMic() {
+    const micBtn = document.getElementById('micBtn');
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        addMessage("Aapka browser voice input support nahi karta.", 'ai');
+        return;
+    }
+    if (isListening) {
+        recognition.stop();
+        return;
+    }
+    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'hi-IN';
+    recognition.interimResults = false;
+    recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); };
+    recognition.onresult = (e) => { userInput.value = e.results[0][0].transcript; handleInput(); };
+    recognition.onerror = () => { isListening = false; micBtn.classList.remove('listening'); };
+    recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); };
+    recognition.start();
+}
+
 window.addEventListener('resize', () => { rsA(); if (rRun) rsR(); });
 </script>
 </body>
 </html>
-
-
