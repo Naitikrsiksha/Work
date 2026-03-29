@@ -18,7 +18,7 @@
             justify-content: center; overflow: hidden;
         }
 
-        .top-bar { position: absolute; top: 0; width: 100%; padding: 20px; display: flex; justify-content: space-between; z-index: 10; }
+        .top-bar { position: absolute; top: 0; width: 100%; padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
         .back-btn { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 20px; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
         .back-btn:hover { color: #ff2d78; }
 
@@ -73,7 +73,10 @@
 
     <div class="top-bar">
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Hub</a>
-        <div style="font-family: 'Orbitron'; color: #00e5ff; font-weight: 900; letter-spacing: 3px;">VIDTO V AI</div>
+        <!-- Naya Dynamic Title Bar -->
+        <div id="topBarTitle" style="font-family: 'Orbitron'; color: #00e5ff; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;">
+            VIDTO V AI
+        </div>
     </div>
 
     <div class="reactor-container">
@@ -115,9 +118,13 @@
     const aiSaid = document.getElementById("aiSaid");
     const debugPanel = document.getElementById("debugPanel");
     
+    // User Name Logic
     let userName = localStorage.getItem("nats_username") || "Boss";
+    document.getElementById("topBarTitle").innerText = `${userName} VIDTO V AI`; // Top bar Update
+    
     let isListening = false;
-    let clickTimeout = false; // Double click/touch rokne ke liye
+    let clickTimeout = false; 
+    let audioUnlocked = false;
 
     function logDebug(msg) {
         debugPanel.innerHTML += `<div>> ${msg}</div>`;
@@ -127,11 +134,13 @@
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition;
 
-    if (SpeechRecognition) {
-        logDebug("Speech API Supported!");
+    // YEH FUNCTION HAR BAAR NAYA MIC CONNECTION BANAYEGA
+    function initRecognition() {
+        if (!SpeechRecognition) return false;
+        
         recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.lang = 'en-IN'; // Works best for Indian English/Hindi mix
+        recognition.lang = 'en-IN'; 
         recognition.interimResults = false;
 
         recognition.onstart = function() {
@@ -165,46 +174,51 @@
         };
 
         recognition.onend = function() {
-            logDebug("Mic closed.");
+            logDebug("Mic connection closed.");
             resetMic();
         };
-    } else {
-        logDebug("API NOT SUPPORTED on this browser.");
-        statusText.innerText = "VOICE NOT SUPPORTED";
-        statusText.style.color = "red";
+        return true;
     }
 
-    // MASTER FUNCTION TO START MIC (Double touch aur audio conflict fix ke sath)
+    // MASTER FUNCTION TO START MIC
     function toggleListen(e) {
         if(e) e.preventDefault(); 
         
-        // Agar pehle se process ho raha hai toh ruk jao (Double tap fix)
         if(clickTimeout) return;
         clickTimeout = true;
-        setTimeout(() => { clickTimeout = false; }, 500); // 500ms block
+        setTimeout(() => { clickTimeout = false; }, 500); 
 
         logDebug("Button Tapped!");
 
-        if (!recognition) return alert("Browser does not support Voice.");
+        if (!SpeechRecognition) return alert("Browser does not support Voice.");
         
+        if (!audioUnlocked) {
+            try {
+                let unlockUtterance = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(unlockUtterance);
+                audioUnlocked = true;
+                logDebug("Audio Unlocked.");
+            } catch(err) {}
+        }
+
         if (isListening) {
-            recognition.stop();
+            if(recognition) recognition.stop();
         } else {
-            // Speaker ko bilkul shant karo aur uske baad Mic chalu karo
             window.speechSynthesis.cancel(); 
             logDebug("Requesting Mic Start...");
             
-            // 200ms ka delay taaki speaker poori tarah band ho jaye
             setTimeout(() => {
-                try { recognition.start(); } 
+                try { 
+                    // Yahan hum bug ko fix kar rahe hain: Har baar naya connection banega
+                    initRecognition(); 
+                    recognition.start(); 
+                } 
                 catch (err) { logDebug("Start Error: " + err.message); }
-            }, 200);
+            }, 300); // Thoda zyada delay taaki speaker shant ho sake
         }
     }
 
-    // Sirf touchstart use karenge taaki clash na ho
     micBtn.addEventListener("touchstart", function(e) { toggleListen(e); }, {passive: false});
-    // Agar PC par hai toh click use hoga
     micBtn.addEventListener("mousedown", function(e) { 
         if(window.innerWidth > 768) toggleListen(e); 
     });
