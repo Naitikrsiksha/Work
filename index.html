@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Naitik AI v4.0 - Game Hub</title>
+    
+    <!-- PWA LINKS -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00e5ff">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8133/8133345.png">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <!-- YAHAN HUMNE TUMHARA 'AIO' WIRE CONNECT KIYA HAI -->
+    <!-- AIO WIRE CONNECTED -->
     <script src="aio.js"></script>
 
     <style>
@@ -32,11 +38,8 @@
             transition: background 0.8s;
         }
 
-        /* ===== NEBULA & CANVAS EFFECTS (v3 Features) ===== */
-        .nebula {
-            position: fixed; border-radius: 50%; filter: blur(90px);
-            pointer-events: none; z-index: 0; animation: nebulaFloat 22s ease-in-out infinite alternate;
-        }
+        /* ===== NEBULA & CANVAS EFFECTS ===== */
+        .nebula { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; animation: nebulaFloat 22s ease-in-out infinite alternate; }
         .neb1 { width: 420px; height: 420px; background: #1a0050; opacity: 0.13; top: -120px; left: -120px; }
         .neb2 { width: 360px; height: 360px; background: #003845; opacity: 0.12; bottom: -60px; right: -80px; animation-delay: -9s; }
         .neb3 { width: 240px; height: 240px; background: #250018; opacity: 0.11; top: 38%; left: 28%; animation-delay: -15s; }
@@ -44,9 +47,7 @@
         
         body.theme-simple .nebula, body.theme-rain .nebula, body.theme-sunny .nebula { display: none; }
 
-        #starsLayer, #asteroidCanvas, #rainCanvas, #cloudLayer, #sunCanvas {
-            position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
-        }
+        #starsLayer, #asteroidCanvas, #rainCanvas, #cloudLayer, #sunCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
         #asteroidCanvas { z-index: 1; }
         #rainCanvas { z-index: 2; display: none; }
         #cloudLayer { height: 96px; z-index: 3; display: none; }
@@ -59,101 +60,70 @@
 
         /* ===== HEADER ===== */
         .header {
-            z-index: 20; padding: 14px 16px;
-            background: rgba(8,13,28,0.96);
-            border-bottom: 2px solid var(--primary);
-            display: flex; justify-content: space-between; align-items: center;
-            backdrop-filter: blur(18px); transition: border-color 0.5s; flex-shrink: 0;
+            z-index: 20; padding: 14px 16px; background: rgba(8,13,28,0.96); border-bottom: 2px solid var(--primary);
+            display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(18px); flex-shrink: 0;
+            position: relative;
         }
-        .logo {
-            font-family: 'Orbitron'; font-weight: 900; font-size: 15px;
-            color: var(--primary); letter-spacing: 2px;
-            text-shadow: 0 0 16px var(--primary), 0 0 38px rgba(0,229,255,0.28);
-        }
+        .logo { font-family: 'Orbitron'; font-weight: 900; font-size: 15px; color: var(--primary); letter-spacing: 2px; text-shadow: 0 0 16px var(--primary); }
         .header-right { display: flex; align-items: center; gap: 15px; }
         
-        .header-btn {
-            background: none; border: none; color: rgba(226,232,240,0.7);
-            font-size: 18px; cursor: pointer; transition: color 0.3s, transform 0.2s;
-            text-decoration: none; display: flex; align-items: center; justify-content: center;
-        }
+        .header-btn { background: none; border: none; color: rgba(226,232,240,0.7); font-size: 18px; cursor: pointer; text-decoration: none; display: flex; align-items: center; transition: 0.2s; }
         .header-btn:hover { color: var(--primary); transform: scale(1.1); }
-        .jarvis-btn { color: #ff2d78; text-shadow: 0 0 10px rgba(255,45,120,0.5); margin-right: 5px; }
+        .jarvis-btn { color: #ff2d78; text-shadow: 0 0 10px rgba(255,45,120,0.5); }
 
-        /* ===== HAMBURGER (v3) ===== */
         .ham-btn {
-            width: 36px; height: 36px; background: rgba(0,229,255,0.07);
-            border: 1px solid var(--primary); border-radius: 8px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            gap: 5px; cursor: pointer; padding: 7px; transition: background 0.25s;
+            width: 36px; height: 36px; background: rgba(0,229,255,0.07); border: 1px solid var(--primary);
+            border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; padding: 7px;
         }
         .ham-btn span { width: 100%; height: 2px; background: var(--primary); border-radius: 2px; display: block; }
-        .ham-btn:active { background: rgba(0,229,255,0.18); }
 
-        /* ===== TRUST BANNER (v4) ===== */
-        .trust-banner {
-            background: rgba(0, 229, 255, 0.1); border-bottom: 1px solid rgba(0, 229, 255, 0.2);
-            color: #82c3ff; text-align: center; font-size: 11px; padding: 6px 10px;
-            z-index: 15; font-family: sans-serif; letter-spacing: 0.5px;
-        }
+        .trust-banner { background: rgba(0, 229, 255, 0.1); border-bottom: 1px solid rgba(0, 229, 255, 0.2); color: #82c3ff; text-align: center; font-size: 11px; padding: 6px 10px; z-index: 15; font-family: sans-serif; letter-spacing: 0.5px; }
 
-        /* ===== SETTINGS MENU ===== */
+        /* ===== SETTINGS MENU & PWA ===== */
         #settingsMenu {
-            position: fixed; top: 62px; right: 12px; z-index: 200;
-            background: rgba(6,12,26,0.97); border: 1px solid var(--primary); border-radius: 14px;
-            padding: 12px; min-width: 200px; display: none; flex-direction: column; gap: 5px;
-            backdrop-filter: blur(18px); box-shadow: 0 8px 40px rgba(0,229,255,0.18);
-            animation: menuDrop 0.22s ease-out; max-height: 80vh; overflow-y: auto;
+            position: fixed; top: 62px; right: 12px; z-index: 200; background: rgba(6,12,26,0.97);
+            border: 1px solid var(--primary); border-radius: 14px; padding: 12px; min-width: 200px; display: none;
+            flex-direction: column; gap: 5px; backdrop-filter: blur(18px); box-shadow: 0 8px 40px rgba(0,229,255,0.18);
+            animation: menuDrop 0.22s ease-out;
         }
         #settingsMenu.open { display: flex; }
-        @keyframes menuDrop { from { opacity:0; transform:translateY(-10px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+        @keyframes menuDrop { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
         .menu-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 1px; margin: 8px 0 4px 4px; font-family: 'Orbitron'; }
         .menu-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 6px 0; }
-        .opt-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text); transition: all 0.2s; border: 1px solid transparent; }
+        .opt-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text); border: 1px solid transparent; }
         .opt-btn:hover { background: rgba(255,255,255,0.07); }
         .opt-btn.active { border-color: var(--primary); background: rgba(0,229,255,0.08); color: var(--primary); }
-        .opt-btn .ico { font-size: 17px; width: 22px; text-align: center; }
+        
+        /* PWA Install Button */
+        #installPwaBtn { color: #00ff88; font-weight: bold; border: 1px dashed #00ff88; background: rgba(0,255,136,0.1); margin-top: 5px; }
 
         /* ===== CHAT CONTAINER ===== */
-        #chat-container {
-            flex: 1; padding: 18px 15px 120px; overflow-y: auto; display: flex; flex-direction: column;
-            gap: 14px; z-index: 5; scroll-behavior: smooth;
-        }
-        #chat-container::-webkit-scrollbar { width: 4px; }
-        #chat-container::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.2); border-radius: 2px; }
-
+        #chat-container { flex: 1; padding: 18px 15px 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; z-index: 5; scroll-behavior: smooth; }
         .message { max-width: 85%; padding: 12px 16px; border-radius: 15px; font-size: 15px; line-height: 1.5; word-wrap: break-word; animation: msgIn 0.3s ease-out; }
         @keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         .ai-message { align-self: flex-start; background: rgba(14,22,42,0.88); border: 1px solid rgba(0,229,255,0.35); border-bottom-left-radius: 3px; box-shadow: 0 3px 18px rgba(0,229,255,0.07); }
-        .user-message { align-self: flex-end; background: var(--primary); color: #000; font-weight: 700; border-bottom-right-radius: 3px; box-shadow: 0 3px 18px rgba(0,229,255,0.28); }
+        .user-message { align-self: flex-end; background: var(--primary); color: #000; font-weight: 700; border-bottom-right-radius: 3px; }
         .notice-message { align-self: center; background: rgba(255, 45, 120, 0.15); border: 1px solid var(--accent); color: #fff; text-align: center; font-size: 13px; max-width: 90%; border-radius: 8px; padding: 8px 12px; }
 
         .game-list-item { color: #00ff88; font-weight: bold; margin-right: 5px; }
-
-        .game-card { background: rgba(0,0,0,0.4); border: 1px solid var(--primary); border-radius: 13px; padding: 15px; margin-top: 8px; text-align: center; width: 100%; box-shadow: 0 4px 24px rgba(0,229,255,0.1); }
-        .play-btn { display: inline-block; background: var(--primary); color: #000; text-decoration: none; padding: 10px 26px; border-radius: 9px; font-weight: 700; margin-top: 10px; font-family: 'Orbitron'; font-size: 13px; transition: transform 0.2s; box-shadow: 0 4px 20px rgba(0,229,255,0.3); }
-        .play-btn:hover { transform: scale(1.05); }
+        .game-card { background: rgba(0,0,0,0.4); border: 1px solid var(--primary); border-radius: 13px; padding: 15px; margin-top: 8px; text-align: center; width: 100%; }
+        .play-btn { display: inline-block; background: var(--primary); color: #000; text-decoration: none; padding: 10px 26px; border-radius: 9px; font-weight: 700; margin-top: 10px; font-family: 'Orbitron'; font-size: 13px; }
 
         /* ===== BOTTOM UI ===== */
-        .bottom-ui { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10,16,32,0.97); border-top: 1px solid rgba(0,229,255,0.2); padding-bottom: env(safe-area-inset-bottom); z-index: 50; backdrop-filter: blur(18px); }
+        .bottom-ui { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10,16,32,0.97); border-top: 1px solid rgba(0,229,255,0.2); padding-bottom: env(safe-area-inset-bottom); z-index: 50; position: relative; }
         .input-area { padding: 14px; display: flex; gap: 10px; align-items: center; }
-        input { flex: 1; background: rgba(0,0,0,0.55); border: 1px solid rgba(0,229,255,0.25); padding: 14px 18px; border-radius: 12px; color: #fff; font-size: 16px; font-family: 'Rajdhani'; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,229,255,0.1); }
-        .send-btn { width: 50px; height: 50px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-size: 18px; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 18px rgba(0,229,255,0.28); transition: 0.15s; }
-        .send-btn:active { transform: scale(0.91); }
-        .mic-btn { width: 50px; height: 50px; border-radius: 12px; border: 1px solid var(--primary); background: rgba(0,229,255,0.08); color: var(--primary); font-size: 18px; cursor: pointer; flex-shrink: 0; transition: 0.15s; }
-        .mic-btn:active { transform: scale(0.91); }
+        input { flex: 1; background: rgba(0,0,0,0.55); border: 1px solid rgba(0,229,255,0.25); padding: 14px 18px; border-radius: 12px; color: #fff; font-size: 16px; font-family: 'Rajdhani'; outline: none; }
+        .send-btn { width: 50px; height: 50px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-size: 18px; cursor: pointer; }
+        .mic-btn { width: 50px; height: 50px; border-radius: 12px; border: 1px solid var(--primary); background: rgba(0,229,255,0.08); color: var(--primary); font-size: 18px; cursor: pointer; }
         .mic-btn.listening { background: rgba(255,45,120,0.18); border-color: #ff2d78; color: #ff2d78; animation: micPulse 1s infinite; }
         @keyframes micPulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,45,120,0.4)} 50%{box-shadow:0 0 0 8px rgba(255,45,120,0)} }
 
         /* ===== USER MEMORY MODAL ===== */
         #nameModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s; }
         #nameModal.active { opacity: 1; pointer-events: all; }
-        .modal-box { background: rgba(10, 16, 32, 0.95); border: 2px solid var(--primary); border-radius: 15px; padding: 30px 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 0 40px rgba(0, 229, 255, 0.2); }
-        .modal-box h2 { font-family: 'Orbitron'; color: var(--primary); margin-bottom: 10px; font-size: 22px; }
-        .modal-box p { color: #aaa; margin-bottom: 20px; font-size: 14px; }
-        .modal-box input { width: 100%; margin-bottom: 20px; text-align: center; font-size: 20px; font-weight: bold; border: 1px solid var(--primary); background: rgba(0,0,0,0.5); padding: 10px; color: #fff; border-radius: 8px; }
-        .modal-box button { width: 100%; background: var(--accent); color: #fff; border: none; padding: 14px; font-size: 18px; font-family: 'Orbitron'; border-radius: 10px; cursor: pointer; box-shadow: 0 0 20px rgba(255, 45, 120, 0.4); }
+        .modal-box { background: rgba(10, 16, 32, 0.95); border: 2px solid var(--primary); border-radius: 15px; padding: 30px 20px; text-align: center; width: 90%; max-width: 400px; }
+        .modal-box input { width: 100%; margin: 20px 0; text-align: center; font-size: 20px; font-weight: bold; border: 1px solid var(--primary); background: rgba(0,0,0,0.5); padding: 10px; color: #fff; border-radius: 8px; }
+        .modal-box button { width: 100%; background: var(--accent); color: #fff; border: none; padding: 14px; font-size: 18px; font-family: 'Orbitron'; border-radius: 10px; cursor: pointer; }
 
         .typing-indicator { display: none; align-self: flex-start; background: rgba(14,22,42,0.88); border: 1px solid rgba(0,229,255,0.35); border-radius: 15px; padding: 12px 16px; margin-bottom: 14px; z-index: 5; }
         .typing-indicator span { display: inline-block; width: 8px; height: 8px; background-color: var(--primary); border-radius: 50%; margin: 0 2px; animation: bounce 1.4s infinite both; }
@@ -161,83 +131,87 @@
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 
         /* =========================================
-           🚨 SECRET HACKER MODE (GOD MODE) UI 🚨
+           🚨 SECRET HACKER MODE (GOD MODE) 🚨
            ========================================= */
-        #hackerScreen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999; display: none; flex-direction: column;
-        }
+        #hackerScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: none; flex-direction: column; }
         #matrixCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.8; }
-        #hackerTerminal {
-            position: relative; z-index: 2; padding: 30px; font-family: monospace;
-            color: #0f0; font-size: 16px; text-shadow: 0 0 5px #0f0; flex: 1;
-            overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;
-        }
+        #hackerTerminal { position: relative; z-index: 2; padding: 30px; font-family: monospace; color: #0f0; font-size: 16px; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
         .hacker-line { margin-bottom: 8px; opacity: 0; animation: typeLine 0.1s forwards; }
         .hacker-alert { color: #f00; font-size: 24px; text-shadow: 0 0 10px #f00; font-weight: bold; text-align: center; margin-top: 30px; opacity: 0; animation: typeLine 0.3s 0.5s forwards; white-space: pre-line; }
         @keyframes typeLine { to { opacity: 1; } }
-        
+
+        /* =========================================
+           🎯 FIRST-TIME TUTORIAL UI 🎯
+           ========================================= */
+        #tutorialOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 9000; display: none; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
+        .tut-box { background: rgba(10, 16, 32, 0.95); border: 2px dashed #00ff88; border-radius: 12px; padding: 25px; text-align: center; max-width: 85%; position: relative; animation: popIn 0.3s ease-out; }
+        .tut-text { color: #fff; font-size: 18px; margin-bottom: 20px; font-weight: bold; }
+        .tut-btn { background: #00ff88; color: #000; border: none; padding: 10px 20px; font-family: 'Orbitron'; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .highlighter { position: relative; z-index: 9001 !important; box-shadow: 0 0 0 6px rgba(0, 255, 136, 0.4), 0 0 20px #00ff88 !important; border-radius: 10px; background: rgba(10,16,32,1); }
+        .arrow-up { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); font-size: 40px; color: #00ff88; animation: bounceArr 1s infinite; }
+        .arrow-down { position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); font-size: 40px; color: #00ff88; animation: bounceArrRev 1s infinite; }
+        @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+        @keyframes bounceArr { 0%,100%{transform:translate(-50%, 0)} 50%{transform:translate(-50%, -10px)} }
+        @keyframes bounceArrRev { 0%,100%{transform:translate(-50%, 0)} 50%{transform:translate(-50%, 10px)} }
+
         @media (min-width: 768px) { #chat-container { width: 60%; margin: 0 auto; } .bottom-ui { width: 60%; left: 20%; right: 20%; border-radius: 20px 20px 0 0; } }
     </style>
 </head>
 <body class="theme-deep-space">
 
-<!-- 🚨 SECRET HACKER SCREEN 🚨 -->
-<div id="hackerScreen">
-    <canvas id="matrixCanvas"></canvas>
-    <div id="hackerTerminal"></div>
-</div>
+<!-- HACKER SCREEN -->
+<div id="hackerScreen"><canvas id="matrixCanvas"></canvas><div id="hackerTerminal"></div></div>
 
-<!-- Background Canvases -->
-<div class="nebula neb1"></div><div class="nebula neb2"></div><div class="nebula neb3"></div>
-<div id="starsLayer"></div>
-<canvas id="asteroidCanvas"></canvas>
-<canvas id="rainCanvas"></canvas>
-<div id="cloudLayer"></div>
-<canvas id="sunCanvas" width="210" height="210"></canvas>
-
-<div class="header">
-    <div class="logo"><i class="fas fa-robot" style="margin-right:8px;"></i>NAITIK AI v4.0</div>
-    <div class="header-right">
-        <!-- JARVIS BUTTON -->
-        <a href="jarvis.html" class="header-btn jarvis-btn" title="Open Voice Mode"><i class="fas fa-microphone"></i></a>
-        <button class="header-btn" onclick="clearChat()" title="Clear Chat"><i class="fas fa-broom"></i></button>
-        <div class="ham-btn" id="hamBtn" onclick="toggleMenu()">
-            <span></span><span></span><span></span>
-        </div>
+<!-- TUTORIAL OVERLAY -->
+<div id="tutorialOverlay">
+    <div class="tut-box" id="tutBox">
+        <div id="tutArrow" class="arrow-up">⬆</div>
+        <div class="tut-text" id="tutText">Tutorial Text Here</div>
+        <button class="tut-btn" onclick="nextTutorialStep()">NEXT STEP ➔</button>
     </div>
 </div>
 
-<!-- TRUST BANNER -->
-<div class="trust-banner">
-    <i class="fas fa-shield-alt"></i> Notice: We securely collect chat data to improve AI responses and your experience permanently.
+<!-- Backgrounds -->
+<div class="nebula neb1"></div><div class="nebula neb2"></div><div class="nebula neb3"></div>
+<div id="starsLayer"></div><canvas id="asteroidCanvas"></canvas><canvas id="rainCanvas"></canvas><div id="cloudLayer"></div><canvas id="sunCanvas" width="210" height="210"></canvas>
+
+<!-- Header -->
+<div class="header">
+    <div class="logo"><i class="fas fa-robot" style="margin-right:8px;"></i>NAITIK AI v4.0</div>
+    <div class="header-right">
+        <a href="jarvis.html" class="header-btn jarvis-btn" id="jarvisBtnTut" title="Open Voice Mode"><i class="fas fa-microphone"></i></a>
+        <button class="header-btn" onclick="clearChat()" title="Clear Chat"><i class="fas fa-broom"></i></button>
+        <div class="ham-btn" id="hamBtnTut" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+    </div>
 </div>
 
-<!-- SETTINGS MENU -->
+<div class="trust-banner"><i class="fas fa-shield-alt"></i> We securely collect chat data to improve AI responses.</div>
+
+<!-- Settings -->
 <div id="settingsMenu">
     <div class="menu-label">THEMES</div>
     <div class="opt-btn active" id="theme-deep-space" onclick="setTheme('deep-space')"><span class="ico">🌌</span> Deep Space</div>
     <div class="opt-btn" id="theme-simple" onclick="setTheme('simple')"><span class="ico">⚡</span> Simple UI</div>
     <div class="opt-btn" id="theme-rain" onclick="setTheme('rain')"><span class="ico">🌧️</span> Rainy Season</div>
     <div class="opt-btn" id="theme-sunny" onclick="setTheme('sunny')"><span class="ico">🌞</span> Sunny Day</div>
-
     <div class="menu-divider"></div>
     <div class="menu-label">LANGUAGE</div>
     <div class="opt-btn" id="lang-hi" onclick="setLang('hi')"><span class="ico">🇮🇳</span> Hindi</div>
     <div class="opt-btn" id="lang-en" onclick="setLang('en')"><span class="ico">🇬🇧</span> English</div>
     <div class="opt-btn active" id="lang-hinglish" onclick="setLang('hinglish')"><span class="ico">🗣️</span> Hinglish</div>
+    <div class="menu-divider"></div>
+    <!-- PWA INSTALL BUTTON -->
+    <div class="opt-btn" id="installPwaBtn" style="display:none;" onclick="installPWA()"><span class="ico">📱</span> Install App</div>
 </div>
 
 <div id="chat-container"></div>
+<div class="typing-indicator" id="typingIndicator"><span></span><span></span><span></span></div>
 
-<div class="typing-indicator" id="typingIndicator">
-    <span></span><span></span><span></span>
-</div>
-
-<div class="bottom-ui">
+<!-- Bottom UI -->
+<div class="bottom-ui" id="bottomUiTut">
     <div class="input-area">
         <input type="text" id="userInput" placeholder="Sawal, Game ka naam ya Number likhein..." onkeypress="if(event.key==='Enter') handleInput()">
-        <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Voice Input"><i class="fas fa-microphone"></i></button>
+        <button class="mic-btn" id="micBtnTut" onclick="toggleMic()" title="Voice Input"><i class="fas fa-microphone"></i></button>
         <button class="send-btn" onclick="handleInput()"><i class="fas fa-paper-plane"></i></button>
     </div>
 </div>
@@ -245,7 +219,7 @@
 <!-- NAME MODAL -->
 <div id="nameModal">
     <div class="modal-box">
-        <h2>IDENTIFICATION REQUIRED</h2>
+        <h2 style="font-family:'Orbitron'; color:#00e5ff;">WELCOME TO NATS</h2>
         <p>System ko aapka naam jaan na hai taaki vo aapko yaad rakh sake.</p>
         <input type="text" id="userNameInput" placeholder="Aapka Naam?" onkeypress="if(event.key==='Enter') saveUserName()">
         <button onclick="saveUserName()">SAVE & START ENGINE</button>
@@ -254,14 +228,37 @@
 
 <script>
 // =============================================
+// PWA (PROGRESSIVE WEB APP) LOGIC
+// =============================================
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW setup pending'));
+}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installPwaBtn').style.display = 'flex'; // Show Install Button in Menu
+});
+function installPWA() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') console.log('PWA Installed!');
+            deferredPrompt = null;
+            document.getElementById('installPwaBtn').style.display = 'none';
+        });
+    } else {
+        alert("Aap is site ko apne browser menu se 'Add to Home Screen' kar sakte hain!");
+    }
+}
+
+// =============================================
 // GOOGLE SHEETS CONNECTION
 // =============================================
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxIhEPs8L4GR6RU9OYoL-x4nbNubtTR2ePmwQMjU9C0pmJHRuZqBeNBdbVB4pRblV7Z5A/exec"; 
 
-// =============================================
-// BACKGROUND EFFECTS LOGIC (v3 Features)
-// =============================================
-(function(){ const l=document.getElementById('starsLayer'); let h=''; for(let i=0;i<190;i++){ const x=Math.random()*100,y=Math.random()*100,s=Math.random()*2.4+.4,d=Math.random()*5,dur=Math.random()*4+3,op=Math.random()*.7+.15; h+=`<div style="position:absolute;left:${x}%;top:${y}%;width:${s}px;height:${s}px;background:#fff;border-radius:50%;opacity:${op};animation:twinkle ${dur}s ${d}s infinite"></div>`;} l.innerHTML=h; const st=document.createElement('style'); st.textContent=`@keyframes twinkle{0%,100%{opacity:.1;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}`; document.head.appendChild(st);})();
+// CANVAS BACKGROUNDS
+(function(){ const l=document.getElementById('starsLayer'); let h=''; for(let i=0;i<190;i++){ const x=Math.random()*100,y=Math.random()*100,s=Math.random()*2.4+.4,d=Math.random()*5,dur=Math.random()*4+3,op=Math.random()*.7+.15; h+=`<div style="position:absolute;left:${x}%;top:${y}%;width:${s}px;height:${s}px;background:#fff;border-radius:50%;opacity:${op};animation:twinkle ${dur}s ${d}s infinite"></div>`;} l.innerHTML=h;})();
 const aC=document.getElementById('asteroidCanvas'),aCtx=aC.getContext('2d'); let rocks=[],aActive=false; function rsA(){aC.width=innerWidth;aC.height=innerHeight;} rsA(); function drA(){aCtx.clearRect(0,0,aC.width,aC.height); if(aActive&&Math.random()>.76) rocks.push({x:Math.random()>.5?Math.random()*aC.width:-130,y:Math.random()>.5?-90:Math.random()*aC.height*.65,sz:Math.random()*6+2.5,vx:Math.random()*13+10,vy:(Math.random()-.5)*5}); rocks.forEach((r,i)=>{const g=aCtx.createRadialGradient(r.x,r.y,0,r.x,r.y,r.sz*3.5);g.addColorStop(0,'rgba(255,110,30,0.9)');g.addColorStop(1,'rgba(255,50,0,0)');aCtx.beginPath();aCtx.arc(r.x,r.y,r.sz*3.5,0,Math.PI*2);aCtx.fillStyle=g;aCtx.fill();aCtx.beginPath();aCtx.arc(r.x,r.y,r.sz,0,Math.PI*2);aCtx.fillStyle=`hsl(${20+Math.random()*25},100%,62%)`;aCtx.fill();r.x+=r.vx;r.y+=r.vy;if(r.x>aC.width+160||r.y>aC.height+160) rocks.splice(i,1);}); requestAnimationFrame(drA);} drA();
 const rC=document.getElementById('rainCanvas'),rCtx=rC.getContext('2d'); let drops=[],rRun=false; function rsR(){rC.width=innerWidth;rC.height=innerHeight;} function anR(){if(!rRun)return;rCtx.clearRect(0,0,rC.width,rC.height);while(drops.length<230)drops.push({x:Math.random()*rC.width,y:-30,l:Math.random()*18+12,s:Math.random()*8+8,op:Math.random()*.45+.2,w:Math.random()*.8+.4});drops.forEach((d,i)=>{rCtx.beginPath();rCtx.moveTo(d.x,d.y);rCtx.lineTo(d.x-2,d.y+d.l);rCtx.strokeStyle=`rgba(130,195,255,${d.op})`;rCtx.lineWidth=d.w;rCtx.stroke();d.y+=d.s;if(d.y>rC.height+20)drops[i]={x:Math.random()*rC.width,y:-30,l:d.l,s:d.s,op:d.op,w:d.w};});requestAnimationFrame(anR);} function stR(){rsR();rRun=true;drops=[];anR();document.getElementById('cloudLayer').innerHTML=`<svg width="100%" height="96" viewBox="0 0 800 96" preserveAspectRatio="none"><ellipse cx="90" cy="52" rx="130" ry="44" fill="#182535" opacity=".95"/><ellipse cx="160" cy="34" rx="95" ry="36" fill="#1c2f3e" opacity=".9"/><ellipse cx="410" cy="48" rx="148" ry="44" fill="#172435" opacity=".95"/><ellipse cx="720" cy="54" rx="116" ry="40" fill="#182535" opacity=".95"/></svg>`;} function spR(){rRun=false;rCtx.clearRect(0,0,rC.width,rC.height);document.getElementById('cloudLayer').innerHTML='';}
 const sC=document.getElementById('sunCanvas'),sCtx=sC.getContext('2d'); let sAng=0,sRun=false; function anS(){if(!sRun)return;sCtx.clearRect(0,0,210,210);sAng+=.007;const cx=105,cy=105,r=46;sCtx.beginPath();sCtx.arc(cx,cy,96,0,Math.PI*2);sCtx.fillStyle='rgba(255,215,0,0.1)';sCtx.fill();for(let i=0;i<14;i++){const a=(i/14)*Math.PI*2+sAng;sCtx.beginPath();sCtx.moveTo(cx+Math.cos(a)*(r+7),cy+Math.sin(a)*(r+7));sCtx.lineTo(cx+Math.cos(a)*(r+22),cy+Math.sin(a)*(r+22));sCtx.strokeStyle=`rgba(255,200,0,0.5)`;sCtx.lineWidth=2.5;sCtx.stroke();}sCtx.beginPath();sCtx.arc(cx,cy,r,0,Math.PI*2);sCtx.fillStyle='#ffd700';sCtx.fill();requestAnimationFrame(anS);} function stS(){sRun=true;anS();} function spS(){sRun=false;sCtx.clearRect(0,0,210,210);}
@@ -279,12 +276,7 @@ function setTheme(t) {
     aActive = (t === 'deep-space');
 
     const root = document.documentElement;
-    const themes = {
-        'deep-space': { primary: '#00e5ff', accent: '#ff2d78', bg: '#02040a' },
-        simple:       { primary: '#d0d8e8', accent: '#888',    bg: '#0a0a0a' },
-        rain:         { primary: '#5bb8ff', accent: '#74d4ff', bg: '#060e18' },
-        sunny:        { primary: '#ffd700', accent: '#ff8c00', bg: '#0d1e35' }
-    };
+    const themes = { 'deep-space': { primary: '#00e5ff', accent: '#ff2d78', bg: '#02040a' }, simple: { primary: '#d0d8e8', accent: '#888', bg: '#0a0a0a' }, rain: { primary: '#5bb8ff', accent: '#74d4ff', bg: '#060e18' }, sunny: { primary: '#ffd700', accent: '#ff8c00', bg: '#0d1e35' } };
     root.style.setProperty('--primary', themes[t].primary);
     root.style.setProperty('--accent',  themes[t].accent);
     root.style.setProperty('--bg',      themes[t].bg);
@@ -298,8 +290,7 @@ function setTheme(t) {
 }
 
 function setLang(l) {
-    currentLang = l;
-    localStorage.setItem('lang', l);
+    currentLang = l; localStorage.setItem('lang', l);
     document.querySelectorAll('[id^="lang-"]').forEach(el => el.classList.remove('active'));
     document.getElementById('lang-' + l)?.classList.add('active');
     document.getElementById('userInput').placeholder = i18n[l].placeholder;
@@ -308,12 +299,62 @@ function setLang(l) {
 
 function toggleMenu() { document.getElementById('settingsMenu').classList.toggle('open'); }
 function closeMenu()  { document.getElementById('settingsMenu').classList.remove('open'); }
-document.addEventListener('click', e => {
-    if (!e.target.closest('#settingsMenu') && !e.target.closest('#hamBtn')) closeMenu();
-});
+document.addEventListener('click', e => { if (!e.target.closest('#settingsMenu') && !e.target.closest('#hamBtnTut')) closeMenu(); });
 
 // =============================================
-// LOGIC & DATA (v4 Features Integrated)
+// FIRST TIME TUTORIAL LOGIC
+// =============================================
+const tutorialSteps = [
+    { target: 'hamBtnTut', text: "Yahan se aap Themes (Rain, Space) aur Language change kar sakte hain!", dir: "up", boxTop: "80px" },
+    { target: 'jarvisBtnTut', text: "Ye 'VIDTO Voice AI' hai! Ispe click karke direct awaaz se baat karein.", dir: "up", boxTop: "80px" },
+    { target: 'bottomUiTut', text: "Yahan apna command type karein ya direct chote mic se bolkar game search karein!", dir: "down", boxTop: "auto", boxBot: "100px" }
+];
+let currentStepIndex = 0;
+
+function startTutorial() {
+    if (localStorage.getItem("nats_tut_done") === "true") {
+        initChat(); return;
+    }
+    document.getElementById('tutorialOverlay').style.display = 'flex';
+    showTutorialStep();
+}
+
+function showTutorialStep() {
+    // Reset all highlights
+    document.querySelectorAll('.highlighter').forEach(el => el.classList.remove('highlighter'));
+    
+    if (currentStepIndex >= tutorialSteps.length) {
+        document.getElementById('tutorialOverlay').style.display = 'none';
+        localStorage.setItem("nats_tut_done", "true");
+        initChat(); return;
+    }
+
+    const step = tutorialSteps[currentStepIndex];
+    const targetEl = document.getElementById(step.target);
+    const tutBox = document.getElementById('tutBox');
+    const tutArrow = document.getElementById('tutArrow');
+
+    targetEl.classList.add('highlighter');
+    document.getElementById('tutText').innerText = step.text;
+
+    // Arrow and Box Positioning
+    if(step.dir === "up") {
+        tutArrow.className = "arrow-up";
+        tutBox.style.top = step.boxTop; tutBox.style.bottom = "auto";
+    } else {
+        tutArrow.className = "arrow-down";
+        tutBox.style.bottom = step.boxBot; tutBox.style.top = "auto";
+    }
+}
+
+function nextTutorialStep() {
+    currentStepIndex++;
+    showTutorialStep();
+}
+
+
+// =============================================
+// LOGIC & DATA
 // =============================================
 const chatContainer = document.getElementById('chat-container');
 const userInput = document.getElementById('userInput');
@@ -322,47 +363,23 @@ const typingIndicator = document.getElementById('typingIndicator');
 let userName = localStorage.getItem("nats_username");
 
 const i18n = {
-    'hi': {
-        placeholder: "सवाल, गेम का नाम या नंबर लिखें...",
-        greeting: (name) => `🚀 नमस्ते <strong>${name}</strong>! मैं <strong>VIDTO V AI</strong> हूँ।<br><br>गेम ओपन करने के लिए उसका नाम या उसका <strong>नंबर</strong> टाइप करें:<br><br>`,
-        found: (name) => `मिल गया! <strong>${name}</strong> तैयार है। खेलने के लिए नीचे बटन दबाएं।`,
-        play_btn: "▶ अभी खेलें (FULL SCREEN)",
-        list: (name) => `ये रही उपलब्ध गेम्स की सूची <strong>${name}</strong>:<br>`,
-        unavailable_known: (name, gameName) => `माफ़ करें ${name}, <strong>${gameName}</strong> अभी मेरे पास नहीं है।<br><br>आप इनमें से नंबर चुनिए:<br>`,
-        not_found: (name) => `माफ़ करें ${name}, यह सवाल मेरे लॉजिक इंजन में अभी फीड नहीं है।`
-    },
-    'en': {
-        placeholder: "Type a question, game name or number...",
-        greeting: (name) => `🚀 Hello <strong>${name}</strong>! I am <strong>VIDTO V AI</strong>.<br><br>Type a game name or its <strong>Number</strong> to open:<br><br>`,
-        found: (name) => `Found it! <strong>${name}</strong> is ready. Click the button below to play.`,
-        play_btn: "▶ PLAY NOW (FULL SCREEN)",
-        list: (name) => `Here is the list of available games for you, <strong>${name}</strong>:<br>`,
-        unavailable_known: (name, gameName) => `Sorry ${name}, <strong>${gameName}</strong> is currently unavailable.<br><br>Please choose a number from below:<br>`,
-        not_found: (name) => `Sorry ${name}, this question is out of my logic engine's scope.`
-    },
-    'hinglish': {
-        placeholder: "Sawal, Game ka naam ya Number likhein...",
-        greeting: (name) => `🚀 Hello <strong>${name}</strong>! Main <strong>VIDTO V AI</strong> hoon.<br><br>Game open karne ke liye uska naam ya uska <strong>Number</strong> type karein:<br><br>`,
-        found: (name) => `Mil gaya! <strong>${name}</strong> ready hai. Niche button dabaiye.`,
-        play_btn: "▶ PLAY NOW (FULL SCREEN)",
-        list: (name) => `Ye rahi available games ki list ${name}:<br>`,
-        unavailable_known: (name, gameName) => `Sorry ${name}, <strong>${gameName}</strong> mere pass abhi available nahi hai.<br><br>Aap inme se number chuniye:<br>`,
-        not_found: (name) => `Sorry ${name}, ye sawal mere logic engine me abhi feed nahi hai. Koi aur game khelna hai kya?`
-    }
+    'hi': { placeholder: "सवाल, गेम का नाम या नंबर लिखें...", greeting: (n) => `🚀 नमस्ते <strong>${n}</strong>! मैं <strong>VIDTO V AI</strong> हूँ।<br><br>गेम ओपन करने के लिए उसका नाम या <strong>नंबर</strong> टाइप करें:<br><br>`, found: (n) => `मिल गया! <strong>${n}</strong> तैयार है। खेलने के लिए नीचे बटन दबाएं।`, play_btn: "▶ अभी खेलें (FULL SCREEN)", list: (n) => `ये रही गेम्स की सूची <strong>${n}</strong>:<br>`, unavailable_known: (n, gn) => `माफ़ करें ${n}, <strong>${gn}</strong> अभी नहीं है।<br><br>नंबर चुनिए:<br>`, not_found: (n) => `माफ़ करें ${n}, यह सवाल मेरे लॉजिक में नहीं है।` },
+    'en': { placeholder: "Type a question, game name or number...", greeting: (n) => `🚀 Hello <strong>${n}</strong>! I am <strong>VIDTO V AI</strong>.<br><br>Type a game name or <strong>Number</strong> to open:<br><br>`, found: (n) => `Found it! <strong>${n}</strong> is ready. Click below to play.`, play_btn: "▶ PLAY NOW (FULL SCREEN)", list: (n) => `Available games for you, <strong>${n}</strong>:<br>`, unavailable_known: (n, gn) => `Sorry ${n}, <strong>${gn}</strong> is unavailable.<br><br>Choose below:<br>`, not_found: (n) => `Sorry ${n}, this is out of my scope.` },
+    'hinglish': { placeholder: "Sawal, Game ka naam ya Number likhein...", greeting: (n) => `🚀 Hello <strong>${n}</strong>! Main <strong>VIDTO V AI</strong> hoon.<br><br>Game open karne ke liye naam ya <strong>Number</strong> type karein:<br><br>`, found: (n) => `Mil gaya! <strong>${n}</strong> ready hai. Niche click karein.`, play_btn: "▶ PLAY NOW (FULL SCREEN)", list: (n) => `Ye rahi list ${n}:<br>`, unavailable_known: (n, gn) => `Sorry ${n}, <strong>${gn}</strong> abhi available nahi hai.<br><br>Inme se chuniye:<br>`, not_found: (n) => `Sorry ${n}, ye mere logic me feed nahi hai. Kuch aur try karein?` }
 };
 
 const games = [
-    { id: "1", name: "Bubble Shooter",          file: "bubbles.html",     tags: ["bubble", "shoot", "shooter"] },
-    { id: "2", name: "Raja Mantri Chor Sipahi", file: "chor.html",        tags: ["raja", "mantri", "chor", "sipahi"] },
-    { id: "3", name: "Classic Snake",           file: "snakeus.html",     tags: ["snake", "saanp", "snk"] },
-    { id: "4", name: "Hill Climb Racer",        file: "geminihill.html",  tags: ["car", "hill", "pahaad", "racer"] },
-    { id: "5", name: "Yuddh Bhoomi",            file: "gunish.html",      tags: ["war", "army", "gunish", "battle"] },
-    { id: "6", name: "Sipahi Game",             file: "sipahi.html",      tags: ["sipahi", "police", "soldier"] },
-    { id: "7", name: "Block Stacker",           file: "blocks.html",      tags: ["block", "tetris", "box", "stack", "bachpan"] },
-    { id: "8", name: "Sci-Fi Badminton",        file: "tennis.html",      tags: ["tennis", "badminton", "racket", "smash", "sports"] },
-    { id: "9", name: "Neon Brick Breaker Pro",  file: "bricks.html",      tags: ["brick", "breaker", "ball", "paddle", "neon"] },
-    { id: "10", name: "Neon Mind Puzzle",       file: "memory.html",      tags: ["memory", "puzzle", "mind", "color", "brain", "dimag"] },
-    { id: "11", name: "T-Rex Runner Pro",       file: "dino.html",        tags: ["dino", "runner", "jump", "trex", "offline", "dinosaur", "chrome"] }
+    { id: "1", name: "Bubble Shooter", file: "bubbles.html", tags: ["bubble", "shoot", "shooter"] },
+    { id: "2", name: "Raja Mantri Chor Sipahi", file: "chor.html", tags: ["raja", "mantri", "chor", "sipahi"] },
+    { id: "3", name: "Classic Snake", file: "snakeus.html", tags: ["snake", "saanp", "snk"] },
+    { id: "4", name: "Hill Climb Racer", file: "geminihill.html", tags: ["car", "hill", "pahaad", "racer"] },
+    { id: "5", name: "Yuddh Bhoomi", file: "gunish.html", tags: ["war", "army", "gunish", "battle"] },
+    { id: "6", name: "Sipahi Game", file: "sipahi.html", tags: ["sipahi", "police", "soldier"] },
+    { id: "7", name: "Block Stacker", file: "blocks.html", tags: ["block", "tetris", "box", "stack", "bachpan"] },
+    { id: "8", name: "Sci-Fi Badminton", file: "tennis.html", tags: ["tennis", "badminton", "racket", "smash", "sports"] },
+    { id: "9", name: "Neon Brick Breaker Pro", file: "bricks.html", tags: ["brick", "breaker", "ball", "paddle", "neon"] },
+    { id: "10", name: "Neon Mind Puzzle", file: "memory.html", tags: ["memory", "puzzle", "mind", "color", "brain", "dimag"] },
+    { id: "11", name: "T-Rex Runner Pro", file: "dino.html", tags: ["dino", "runner", "jump", "trex", "offline", "dinosaur", "chrome"] }
 ];
 
 const unavailableGames = [
@@ -371,14 +388,13 @@ const unavailableGames = [
     { name: "Free Fire", aliases: ["free fire", "ff"] }
 ];
 
-setTheme(currentTheme);
-setLang(currentLang);
+setTheme(currentTheme); setLang(currentLang);
 
 window.onload = () => {
     if (!userName) {
         document.getElementById("nameModal").classList.add("active");
     } else {
-        initChat();
+        startTutorial(); // Will auto-skip if already done
     }
 };
 
@@ -388,11 +404,12 @@ function saveUserName() {
         userName = input;
         localStorage.setItem("nats_username", userName);
         document.getElementById("nameModal").classList.remove("active");
-        initChat();
+        startTutorial(); // Start Tutorial after name save
     } else {
         alert("Bhai, kam se kam 2 letters ka naam toh likho!");
     }
 }
+
 function initChat() {
     chatContainer.innerHTML = '';
     const lang = i18n[currentLang];
@@ -410,10 +427,8 @@ function addMessage(html, type) {
     const div = document.createElement('div');
     if (type === 'notice') div.className = `message notice-message`;
     else div.className = `message ${type}-message`;
-    div.innerHTML = html;
-    chatContainer.appendChild(div);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-    return div;
+    div.innerHTML = html; chatContainer.appendChild(div);
+    chatContainer.scrollTop = chatContainer.scrollHeight; return div;
 }
 
 function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); }
@@ -443,202 +458,111 @@ function getEditDistance(a, b) {
 
 function findGame(query) {
     const numQuery = query.trim();
-    // 1. Number Search (e.g., "1", "2")
     const exactIdMatch = games.find(g => g.id === numQuery);
     if (exactIdMatch) return exactIdMatch;
 
     const nQuery = normalizeText(query);
     if (!nQuery) return null;
 
-    // 2. Exact or Direct Match (e.g., "Bubble Shooter")
     const exact = games.find(g => normalizeText(g.name) === nQuery);
     if (exact) return exact;
     
     const direct = games.find(g => nQuery.includes(normalizeText(g.name)) || g.tags.some(tag => nQuery.includes(tag)));
     if (direct) return direct;
     
-    // 3. 🚀 SMART SPELLING FIXER (Typo Tolerance)
-    let closestGame = null;
-    let minDistance = 999;
-    
+    // Fuzzy Logic (Typo tolerance)
+    let closestGame = null; let minDistance = 999;
     games.forEach(g => {
-        let gameNameNorm = normalizeText(g.name);
-        // Word to word compare
-        let dist = getEditDistance(nQuery, gameNameNorm);
-        
-        // Check Tags also (if user typed 'buble', compare with tag 'bubble')
-        g.tags.forEach(tag => {
-            let tagDist = getEditDistance(nQuery, tag);
-            if(tagDist < dist) dist = tagDist;
-        });
-
-        // Agar max 2-3 letters ki galti hai, toh accept kar lo
+        let dist = getEditDistance(nQuery, normalizeText(g.name));
+        g.tags.forEach(tag => { let tagDist = getEditDistance(nQuery, tag); if(tagDist < dist) dist = tagDist; });
         let allowedMistakes = Math.max(2, Math.floor(nQuery.length / 3));
-        if(dist < minDistance && dist <= allowedMistakes) {
-            minDistance = dist;
-            closestGame = g;
-        }
+        if(dist < minDistance && dist <= allowedMistakes) { minDistance = dist; closestGame = g; }
     });
-    
     return closestGame;
 }
 
-
 /* =========================================
-   🚨 THE HACKER MODE LOGIC (GOD MODE) 🚨
+   🚨 SECRET HACKER MODE 🚨
    ========================================= */
 let matrixInterval = null;
 function startHackerMode() {
-    const hScreen = document.getElementById("hackerScreen");
-    const hTerm = document.getElementById("hackerTerminal");
-    hScreen.style.display = "flex";
-    hTerm.innerHTML = "";
-
-    // 1. Start Matrix Rain
-    const mC = document.getElementById("matrixCanvas");
-    const mCtx = mC.getContext("2d");
+    const hScreen = document.getElementById("hackerScreen"); const hTerm = document.getElementById("hackerTerminal");
+    hScreen.style.display = "flex"; hTerm.innerHTML = "";
+    const mC = document.getElementById("matrixCanvas"); const mCtx = mC.getContext("2d");
     mC.width = window.innerWidth; mC.height = window.innerHeight;
-    const letters = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
-    const fontSize = 16;
-    const columns = mC.width / fontSize;
-    const drops = Array.from({length: columns}).fill(1);
-
+    const letters = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*'; const fontSize = 16;
+    const columns = mC.width / fontSize; const drops = Array.from({length: columns}).fill(1);
     matrixInterval = setInterval(() => {
-        mCtx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-        mCtx.fillRect(0, 0, mC.width, mC.height);
-        mCtx.fillStyle = '#0F0';
-        mCtx.font = fontSize + 'px monospace';
+        mCtx.fillStyle = 'rgba(0, 0, 0, 0.08)'; mCtx.fillRect(0, 0, mC.width, mC.height);
+        mCtx.fillStyle = '#0F0'; mCtx.font = fontSize + 'px monospace';
         for(let i = 0; i < drops.length; i++) {
-            const text = letters.charAt(Math.floor(Math.random() * letters.length));
-            mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+            mCtx.fillText(letters.charAt(Math.floor(Math.random() * letters.length)), i * fontSize, drops[i] * fontSize);
             if(drops[i] * fontSize > mC.height && Math.random() > 0.975) drops[i] = 0;
             drops[i]++;
         }
     }, 33);
-
-    // 2. Start Terminal Typing Sequence
-    const sequence = [
-        "INITIALIZING NATS ENGINE KERNEL...",
-        "BYPASSING GLOBAL SECURITY PROTOCOLS... [OK]",
-        "UPLINK ESTABLISHED WITH SATELLITE VIDTO-7...",
-        "DECRYPTING ENEMY MAINFRAME...",
-        "DOWNLOADING TOP SECRET FILES... 14%",
-        "DOWNLOADING TOP SECRET FILES... 89%",
-        "DOWNLOAD COMPLETE.",
-        "OVERRIDING SYSTEM ADMIN PRIVILEGES...",
-    ];
-
+    const sequence = [ "INITIALIZING NATS ENGINE KERNEL...", "BYPASSING GLOBAL SECURITY PROTOCOLS... [OK]", "UPLINK ESTABLISHED WITH SATELLITE VIDTO-7...", "DECRYPTING ENEMY MAINFRAME...", "DOWNLOADING TOP SECRET FILES... 14%", "DOWNLOADING TOP SECRET FILES... 89%", "DOWNLOAD COMPLETE.", "OVERRIDING SYSTEM ADMIN PRIVILEGES..." ];
     let delay = 500;
-    sequence.forEach((text, index) => {
+    sequence.forEach((text) => {
         setTimeout(() => {
-            const line = document.createElement("div");
-            line.className = "hacker-line";
-            line.innerText = "> " + text;
-            hTerm.appendChild(line);
+            const line = document.createElement("div"); line.className = "hacker-line"; line.innerText = "> " + text; hTerm.appendChild(line);
         }, delay);
         delay += 800 + Math.random() * 500;
     });
-
-    // 3. Final Reveal and Exit
     setTimeout(() => {
-        const alertMsg = document.createElement("div");
-        alertMsg.className = "hacker-alert";
-        alertMsg.innerText = "ACCESS GRANTED\nWELCOME MASTER NAITIK";
-        hTerm.appendChild(alertMsg);
-        
-        // Return to normal after 3 seconds
-        setTimeout(() => {
-            clearInterval(matrixInterval);
-            hScreen.style.display = "none";
-            addMessage("System Override Complete. Welcome back, Boss. What is your command?", "ai");
-        }, 3500);
-
+        const alertMsg = document.createElement("div"); alertMsg.className = "hacker-alert"; alertMsg.innerText = "ACCESS GRANTED\nWELCOME MASTER NAITIK"; hTerm.appendChild(alertMsg);
+        setTimeout(() => { clearInterval(matrixInterval); hScreen.style.display = "none"; addMessage("System Override Complete. Welcome back, Boss.", "ai"); }, 3500);
     }, delay + 500);
 }
 
-// MAIN INPUT HANDLER
 async function handleInput() {
     const rawText = userInput.value.trim();
-    if (!rawText) return;
-    userInput.value = '';
+    if (!rawText) return; userInput.value = '';
 
-    // 🚨 CHECK FOR SECRET HACKER CODE 🚨
-    if(rawText.toLowerCase() === "/nats" || rawText.toLowerCase() === "/hack") {
-        startHackerMode();
-        return; // Stop normal processing
-    }
+    if(rawText.toLowerCase() === "/nats" || rawText.toLowerCase() === "/hack") { startHackerMode(); return; }
 
-    const safeText = escapeHTML(rawText);
-    addMessage(safeText, 'user');
+    addMessage(escapeHTML(rawText), 'user');
+    if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== "") fetch(GOOGLE_SHEET_URL + "?name=" + encodeURIComponent(userName) + "&q=" + encodeURIComponent(rawText), { mode: 'no-cors' }).catch(e => console.log("Log error"));
 
-    if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== "") {
-        fetch(GOOGLE_SHEET_URL + "?name=" + encodeURIComponent(userName) + "&q=" + encodeURIComponent(rawText), { mode: 'no-cors' }).catch(e => console.log("Log error"));
-    }
-
-    chatContainer.appendChild(typingIndicator);
-    typingIndicator.style.display = 'block';
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-
+    chatContainer.appendChild(typingIndicator); typingIndicator.style.display = 'block'; chatContainer.scrollTop = chatContainer.scrollHeight;
     await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
-
-    typingIndicator.style.display = 'none';
-    processAIResponse(rawText);
+    typingIndicator.style.display = 'none'; processAIResponse(rawText);
 }
 
 function processAIResponse(rawQuery) {
     let response = ''; let foundGame = null;
-    const query = normalizeText(rawQuery);
-    const lang = i18n[currentLang];
+    const query = normalizeText(rawQuery); const lang = i18n[currentLang];
     const gameListStr = games.map(g => `<span class="game-list-item">[${g.id}]</span> ${g.name}`).join('<br>');
-    
     const unavailable = findUnavailableGame(query);
 
-    if (/\b(hello|hi|hey|namaste|namaskar|helo|hii)\b/.test(query) || query === 'hello' || query === 'hi') {
-        response = lang.greeting(userName) + gameListStr;
-    } else if (unavailable) {
-        response = lang.unavailable_known(userName, unavailable.name) + gameListStr;
-    } else if (/\b(list|naam|names|available|games|kaunse|kaun kaun|show)\b/.test(query)) {
-        response = lang.list(userName) + gameListStr;
-    } else {
+    if (/\b(hello|hi|hey|namaste|namaskar|helo|hii)\b/.test(query) || query === 'hello' || query === 'hi') response = lang.greeting(userName) + gameListStr;
+    else if (unavailable) response = lang.unavailable_known(userName, unavailable.name) + gameListStr;
+    else if (/\b(list|naam|names|available|games|kaunse|kaun kaun|show)\b/.test(query)) response = lang.list(userName) + gameListStr;
+    else {
         foundGame = findGame(rawQuery); 
-        if (foundGame) {
-            response = lang.found(foundGame.name);
-        } else {
+        if (foundGame) response = lang.found(foundGame.name);
+        else {
             let aioMatch = null;
-            if (typeof aioData !== 'undefined' && aioData.qaList) {
-                aioMatch = aioData.qaList.find(qa => qa.keywords.some(k => query.includes(normalizeText(k))));
-            }
-            if (aioMatch) response = aioMatch.answer.replace("Bhai", userName).replace("bhai", userName);
+            if (typeof aioData !== 'undefined' && aioData.qaList) aioMatch = aioData.qaList.find(qa => qa.keywords.some(k => query.includes(normalizeText(k))));
+            if (aioMatch) response = aioMatch.answer.replace(/Bhai/g, userName).replace(/bhai/g, userName);
             else response = lang.not_found(userName);
         }
     }
-
     addMessage(response, 'ai');
-
     if (foundGame) {
         const gc = document.createElement('div'); gc.className = 'game-card';
-        gc.innerHTML = `<div style="font-weight:bold;color:var(--primary);margin-bottom:6px;">🎮 ${foundGame.name}</div>
-                        <a href="${foundGame.file}" class="play-btn">${lang.play_btn}</a>`;
-        chatContainer.appendChild(gc);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+        gc.innerHTML = `<div style="font-weight:bold;color:var(--primary);margin-bottom:6px;">🎮 ${foundGame.name}</div><a href="${foundGame.file}" class="play-btn">${lang.play_btn}</a>`;
+        chatContainer.appendChild(gc); chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 }
 
-let recognition = null;
-let isListening = false;
+let recognition = null; let isListening = false;
 function toggleMic() {
-    const micBtn = document.getElementById('micBtn');
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        addMessage("Aapka browser voice input support nahi karta.", 'ai');
-        return;
-    }
-    if (isListening) {
-        recognition.stop();
-        return;
-    }
+    const micBtn = document.getElementById('micBtnTut');
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) { addMessage("Browser voice support nahi karta.", 'ai'); return; }
+    if (isListening) { recognition.stop(); return; }
     recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'hi-IN';
-    recognition.interimResults = false;
+    recognition.lang = 'hi-IN'; recognition.interimResults = false;
     recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); };
     recognition.onresult = (e) => { userInput.value = e.results[0][0].transcript; handleInput(); };
     recognition.onerror = () => { isListening = false; micBtn.classList.remove('listening'); };
