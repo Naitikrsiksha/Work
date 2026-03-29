@@ -29,8 +29,7 @@
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
             font-size: 45px; color: #00e5ff; cursor: pointer; z-index: 5;
             box-shadow: 0 0 30px rgba(0, 229, 255, 0.3), inset 0 0 20px rgba(0, 229, 255, 0.2);
-            transition: all 0.3s;
-            -webkit-tap-highlight-color: transparent;
+            transition: all 0.3s; -webkit-tap-highlight-color: transparent;
         }
         .mic-btn.listening {
             background: rgba(255, 45, 120, 0.2); border-color: #ff2d78; color: #ff2d78;
@@ -64,10 +63,32 @@
 
         /* HACKER DEBUGGER PANEL */
         #debugPanel {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 120px;
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 100px;
             background: rgba(0, 15, 0, 0.9); color: #0f0; font-family: monospace;
             font-size: 11px; padding: 10px; overflow-y: auto; z-index: 100;
             border-top: 2px solid #0f0; text-align: left; line-height: 1.3;
+        }
+
+        /* PERMISSION ERROR MODAL */
+        #permissionModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 999; opacity: 0; pointer-events: none; transition: 0.4s;
+        }
+        #permissionModal.active { opacity: 1; pointer-events: all; }
+        .modal-box {
+            background: rgba(10, 16, 32, 0.95); border: 2px solid #ff2d78;
+            border-radius: 15px; padding: 30px 20px; text-align: center; width: 90%; max-width: 400px;
+            box-shadow: 0 0 40px rgba(255, 45, 120, 0.3);
+        }
+        .modal-box h2 { font-family: 'Orbitron'; color: #ff2d78; margin-bottom: 15px; font-size: 22px; }
+        .modal-box p { color: #e2e8f0; margin-bottom: 15px; font-size: 15px; line-height: 1.5; }
+        .modal-box .instruction { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; color: #00e5ff; font-size: 14px; text-align: left; margin-bottom: 20px; }
+        .modal-box button {
+            width: 100%; background: #00e5ff; color: #000; border: none;
+            padding: 14px; font-size: 16px; font-family: 'Orbitron'; font-weight: bold; border-radius: 10px;
+            cursor: pointer; box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
         }
     </style>
 </head>
@@ -81,7 +102,6 @@
     <div class="reactor-container">
         <div class="ring ring1"></div>
         <div class="ring ring2"></div>
-        <!-- Hata diya inline onclick, ab JavaScript se robust listener lagayenge -->
         <div class="mic-btn" id="micBtn">
             <i class="fas fa-microphone"></i>
         </div>
@@ -93,9 +113,24 @@
         <div id="aiSaid" class="ai-response-text">Awaiting Voice Input...</div>
     </div>
 
-    <!-- Naya Debug Panel -->
     <div id="debugPanel">
         <div>> SYSTEM BOOT COMPLETE.</div>
+    </div>
+
+    <!-- NAYA SMART PERMISSION MODAL -->
+    <div id="permissionModal">
+        <div class="modal-box">
+            <h2><i class="fas fa-microphone-slash"></i> MIC BLOCKED!</h2>
+            <p>Aapke browser ne Microphone ko block kar rakha hai, isliye JARVIS aapki aawaz nahi sun pa raha.</p>
+            <div class="instruction">
+                <strong>Ise Theek Kaise Karein:</strong><br><br>
+                1. Upar URL bar ke bagal me <strong>Lock (🔒)</strong> icon par click karein.<br>
+                2. <strong>Permissions / Site Settings</strong> me jayein.<br>
+                3. <strong>Microphone</strong> ko <strong>Allow</strong> karein.<br>
+                4. Page ko Refresh karein.
+            </div>
+            <button onclick="closePermissionModal()">THIK HAI, SAMAJH GAYA</button>
+        </div>
     </div>
 
 <script>
@@ -118,19 +153,21 @@
     const userSaid = document.getElementById("userSaid");
     const aiSaid = document.getElementById("aiSaid");
     const debugPanel = document.getElementById("debugPanel");
+    const permissionModal = document.getElementById("permissionModal");
     
     let userName = localStorage.getItem("nats_username") || "Boss";
     let isListening = false;
     let audioUnlocked = false;
 
-    // DEBUG LOGGER FUNCTION
     function logDebug(msg) {
         debugPanel.innerHTML += `<div>> ${msg}</div>`;
         debugPanel.scrollTop = debugPanel.scrollHeight;
-        console.log("JARVIS:", msg);
     }
 
-    // Speech Recognition Setup
+    function closePermissionModal() {
+        permissionModal.classList.remove("active");
+    }
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition;
 
@@ -138,20 +175,17 @@
         logDebug("Speech API Supported!");
         recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.lang = 'en-IN'; // Works best globally
+        recognition.lang = 'en-IN'; // Best for Indian English/Hindi mix
         recognition.interimResults = false;
 
         recognition.onstart = function() {
-            logDebug("Mic is now ON. Ready to hear.");
+            logDebug("Mic is ON.");
             isListening = true;
             micBtn.classList.add("listening");
             statusText.innerText = "LISTENING... SPEAK NOW";
             statusText.style.color = "#ff2d78";
             userSaid.innerText = "...";
         };
-
-        recognition.onaudiostart = function() { logDebug("Audio source detected..."); };
-        recognition.onspeechstart = function() { logDebug("User is speaking..."); };
 
         recognition.onresult = function(event) {
             const transcript = event.results[0][0].transcript;
@@ -162,11 +196,13 @@
         };
 
         recognition.onerror = function(event) {
-            logDebug("ERROR OCCURRED: " + event.error);
-            if (event.error === 'no-speech') {
-                statusText.innerText = "NO SPEECH DETECTED.";
-            } else if (event.error === 'not-allowed') {
+            logDebug("ERROR: " + event.error);
+            if (event.error === 'not-allowed') {
                 statusText.innerText = "MIC PERMISSION DENIED!";
+                // SHOW SMART MODAL TO USER
+                permissionModal.classList.add("active");
+            } else if (event.error === 'no-speech') {
+                statusText.innerText = "NO SPEECH DETECTED.";
             } else {
                 statusText.innerText = "MIC ERROR: " + event.error;
             }
@@ -174,56 +210,41 @@
         };
 
         recognition.onend = function() {
-            logDebug("Mic connection closed.");
+            logDebug("Mic closed.");
             resetMic();
         };
     } else {
         logDebug("API NOT SUPPORTED on this browser.");
-        statusText.innerText = "VOICE NOT SUPPORTED HERE";
+        statusText.innerText = "VOICE NOT SUPPORTED";
         statusText.style.color = "red";
     }
 
-    // MASTER FUNCTION TO START MIC
     function toggleListen(e) {
-        if(e) e.preventDefault(); // Rok lo double firing
-        
+        if(e) e.preventDefault(); 
         logDebug("Button Tapped!");
 
-        if (!recognition) {
-            logDebug("Browser validation failed.");
-            return alert("Browser does not support Voice. Try Google Chrome.");
-        }
+        if (!recognition) return alert("Browser does not support Voice.");
         
-        // Audio Unlocker (ek bar chalta hai)
         if (!audioUnlocked) {
             try {
                 let unlockUtterance = new SpeechSynthesisUtterance('');
                 window.speechSynthesis.speak(unlockUtterance);
                 audioUnlocked = true;
-                logDebug("Audio System Unlocked.");
+                logDebug("Audio Unlocked.");
             } catch(err) {}
         }
 
         if (isListening) {
-            logDebug("Manually stopping mic.");
             recognition.stop();
         } else {
             window.speechSynthesis.cancel(); 
-            logDebug("Requesting Mic Access...");
-            try {
-                recognition.start();
-            } catch (err) {
-                logDebug("Start Error: " + err.message);
-            }
+            logDebug("Requesting Mic Start...");
+            try { recognition.start(); } catch (err) { logDebug("Start Error: " + err.message); }
         }
     }
 
-    // EVENT LISTENERS (Dono Touch aur Click support lagaya hai)
     micBtn.addEventListener("click", toggleListen);
-    micBtn.addEventListener("touchstart", function(e) {
-        // Touch devices par smoothly run karega
-        toggleListen(e);
-    }, {passive: false});
+    micBtn.addEventListener("touchstart", function(e) { toggleListen(e); }, {passive: false});
 
     function resetMic() {
         isListening = false;
@@ -233,7 +254,6 @@
         statusText.style.color = "rgba(255,255,255,0.6)";
     }
 
-    // Voice Output Engine
     function speakText(text, callback) {
         logDebug("Preparing JARVIS Voice...");
         window.speechSynthesis.cancel(); 
@@ -245,12 +265,8 @@
 
         const synth = window.speechSynthesis;
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        
         utterance.pitch = 1.0; 
         utterance.rate = 1.0;
-
-        utterance.onstart = function() { logDebug("JARVIS is speaking..."); };
-        utterance.onerror = function(e) { logDebug("Speak Error: " + e.error); };
 
         let callbackFired = false;
         function fireCallback() {
@@ -260,7 +276,6 @@
                 callback();
             }
         }
-
         utterance.onend = function() { logDebug("Finished Speaking."); fireCallback(); };
 
         synth.speak(utterance);
@@ -271,15 +286,11 @@
 
     function processVoiceCommand(rawText) {
         logDebug("Processing Logic...");
-        let response = "";
-        let foundGame = null;
-        let redirectTimeout = null;
-        
+        let response = ""; let foundGame = null; let redirectTimeout = null;
         const query = normalizeText(rawText);
         const numCheck = rawText.trim();
 
         foundGame = games.find(g => g.id === numCheck);
-
         if (!foundGame) {
             let exact = games.find(g => normalizeText(g.name) === query);
             if (exact) foundGame = exact;
@@ -299,13 +310,9 @@
             if (typeof aioData !== 'undefined' && aioData.qaList) {
                 aioMatch = aioData.qaList.find(qa => qa.keywords.some(k => query.includes(normalizeText(k))));
             }
-            if (aioMatch) {
-                response = aioMatch.answer.replace(/Bhai/g, userName).replace(/bhai/g, userName);
-            } else {
-                response = `Sorry ${userName}, I didn't catch that. Please try again.`;
-            }
+            if (aioMatch) response = aioMatch.answer.replace(/Bhai/g, userName).replace(/bhai/g, userName);
+            else response = `Sorry ${userName}, I didn't catch that. Please try again.`;
         }
-
         speakText(response, redirectTimeout);
     }
 </script>
