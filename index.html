@@ -393,21 +393,69 @@ function addMessage(html, type) {
 function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); }
 function normalizeText(text) { return (text || '').toLowerCase().replace(/[^\w\sऀ-ॿ]/g, ' ').replace(/\s+/g, ' ').trim(); }
 function findUnavailableGame(query) { return unavailableGames.find(game => game.aliases.some(alias => query.includes(alias))); }
+// ==========================================
+// 🧠 SMART TYPO TOLERANCE (Fuzzy Logic Algorithm)
+// ==========================================
+function getEditDistance(a, b) {
+    if(a.length === 0) return b.length;
+    if(b.length === 0) return a.length;
+    var matrix = [];
+    for(var i = 0; i <= b.length; i++) { matrix[i] = [i]; }
+    for(var j = 0; j <= a.length; j++) { matrix[0][j] = j; }
+    for(var i = 1; i <= b.length; i++) {
+        for(var j = 1; j <= a.length; j++) {
+            if(b.charAt(i-1) === a.charAt(j-1)) {
+                matrix[i][j] = matrix[i-1][j-1];
+            } else {
+                matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1));
+            }
+        }
+    }
+    return matrix[b.length][a.length];
+}
 
 function findGame(query) {
     const numQuery = query.trim();
+    // 1. Number Search (e.g., "1", "2")
     const exactIdMatch = games.find(g => g.id === numQuery);
     if (exactIdMatch) return exactIdMatch;
 
     const nQuery = normalizeText(query);
+    if (!nQuery) return null;
+
+    // 2. Exact or Direct Match (e.g., "Bubble Shooter")
     const exact = games.find(g => normalizeText(g.name) === nQuery);
     if (exact) return exact;
     
     const direct = games.find(g => nQuery.includes(normalizeText(g.name)) || g.tags.some(tag => nQuery.includes(tag)));
     if (direct) return direct;
     
-    return null;
+    // 3. 🚀 SMART SPELLING FIXER (Typo Tolerance)
+    let closestGame = null;
+    let minDistance = 999;
+    
+    games.forEach(g => {
+        let gameNameNorm = normalizeText(g.name);
+        // Word to word compare
+        let dist = getEditDistance(nQuery, gameNameNorm);
+        
+        // Check Tags also (if user typed 'buble', compare with tag 'bubble')
+        g.tags.forEach(tag => {
+            let tagDist = getEditDistance(nQuery, tag);
+            if(tagDist < dist) dist = tagDist;
+        });
+
+        // Agar max 2-3 letters ki galti hai, toh accept kar lo
+        let allowedMistakes = Math.max(2, Math.floor(nQuery.length / 3));
+        if(dist < minDistance && dist <= allowedMistakes) {
+            minDistance = dist;
+            closestGame = g;
+        }
+    });
+    
+    return closestGame;
 }
+
 
 async function handleInput() {
     const rawText = userInput.value.trim();
