@@ -7,10 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
     
+    <!-- LINK TO SAME LOGIC FILE -->
     <script src="aio.js"></script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
         body {
             background-color: #010308; color: #00e5ff; font-family: 'Rajdhani', sans-serif;
             height: 100vh; display: flex; flex-direction: column; align-items: center;
@@ -29,6 +30,7 @@
             font-size: 45px; color: #00e5ff; cursor: pointer; z-index: 5;
             box-shadow: 0 0 30px rgba(0, 229, 255, 0.3), inset 0 0 20px rgba(0, 229, 255, 0.2);
             transition: all 0.3s;
+            -webkit-tap-highlight-color: transparent;
         }
         .mic-btn.listening {
             background: rgba(255, 45, 120, 0.2); border-color: #ff2d78; color: #ff2d78;
@@ -79,7 +81,8 @@
     <div class="reactor-container">
         <div class="ring ring1"></div>
         <div class="ring ring2"></div>
-        <div class="mic-btn" id="micBtn" onclick="toggleListen()">
+        <!-- Hata diya inline onclick, ab JavaScript se robust listener lagayenge -->
+        <div class="mic-btn" id="micBtn">
             <i class="fas fa-microphone"></i>
         </div>
     </div>
@@ -90,7 +93,7 @@
         <div id="aiSaid" class="ai-response-text">Awaiting Voice Input...</div>
     </div>
 
-    <!-- Naya Debug Panel (Niche dikhega) -->
+    <!-- Naya Debug Panel -->
     <div id="debugPanel">
         <div>> SYSTEM BOOT COMPLETE.</div>
     </div>
@@ -118,12 +121,13 @@
     
     let userName = localStorage.getItem("nats_username") || "Boss";
     let isListening = false;
+    let audioUnlocked = false;
 
     // DEBUG LOGGER FUNCTION
     function logDebug(msg) {
         debugPanel.innerHTML += `<div>> ${msg}</div>`;
         debugPanel.scrollTop = debugPanel.scrollHeight;
-        console.log("JARVIS DEBUG:", msg);
+        console.log("JARVIS:", msg);
     }
 
     // Speech Recognition Setup
@@ -134,67 +138,92 @@
         logDebug("Speech API Supported!");
         recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.lang = 'en-IN'; // English-India (Works best globally as fallback)
+        recognition.lang = 'en-IN'; // Works best globally
         recognition.interimResults = false;
 
         recognition.onstart = function() {
-            logDebug("Mic ON. Start speaking...");
+            logDebug("Mic is now ON. Ready to hear.");
             isListening = true;
             micBtn.classList.add("listening");
             statusText.innerText = "LISTENING... SPEAK NOW";
             statusText.style.color = "#ff2d78";
+            userSaid.innerText = "...";
         };
 
         recognition.onaudiostart = function() { logDebug("Audio source detected..."); };
-        recognition.onspeechstart = function() { logDebug("Speech sound detected..."); };
-        recognition.onspeechend = function() { logDebug("Speech stopped..."); };
+        recognition.onspeechstart = function() { logDebug("User is speaking..."); };
 
         recognition.onresult = function(event) {
             const transcript = event.results[0][0].transcript;
-            logDebug("RESULT CAUGHT: " + transcript);
+            logDebug("CAUGHT TEXT: " + transcript);
             userSaid.innerText = `You: "${transcript}"`;
             statusText.innerText = "PROCESSING...";
             processVoiceCommand(transcript);
         };
 
         recognition.onerror = function(event) {
-            logDebug("CRITICAL ERROR: " + event.error);
+            logDebug("ERROR OCCURRED: " + event.error);
             if (event.error === 'no-speech') {
                 statusText.innerText = "NO SPEECH DETECTED.";
             } else if (event.error === 'not-allowed') {
                 statusText.innerText = "MIC PERMISSION DENIED!";
             } else {
-                statusText.innerText = "MIC ERROR: " + event.error.toUpperCase();
+                statusText.innerText = "MIC ERROR: " + event.error;
             }
             resetMic();
         };
 
         recognition.onend = function() {
-            logDebug("Mic disconnected.");
+            logDebug("Mic connection closed.");
             resetMic();
         };
     } else {
-        logDebug("ERROR: Speech API NOT Supported on this browser/OS.");
+        logDebug("API NOT SUPPORTED on this browser.");
         statusText.innerText = "VOICE NOT SUPPORTED HERE";
         statusText.style.color = "red";
     }
 
-    function toggleListen() {
-        if (!recognition) return alert("Browser does not support Voice.");
+    // MASTER FUNCTION TO START MIC
+    function toggleListen(e) {
+        if(e) e.preventDefault(); // Rok lo double firing
         
+        logDebug("Button Tapped!");
+
+        if (!recognition) {
+            logDebug("Browser validation failed.");
+            return alert("Browser does not support Voice. Try Google Chrome.");
+        }
+        
+        // Audio Unlocker (ek bar chalta hai)
+        if (!audioUnlocked) {
+            try {
+                let unlockUtterance = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(unlockUtterance);
+                audioUnlocked = true;
+                logDebug("Audio System Unlocked.");
+            } catch(err) {}
+        }
+
         if (isListening) {
-            logDebug("User manually stopped mic.");
+            logDebug("Manually stopping mic.");
             recognition.stop();
         } else {
             window.speechSynthesis.cancel(); 
-            logDebug("Requesting Mic Start...");
+            logDebug("Requesting Mic Access...");
             try {
                 recognition.start();
-            } catch (e) {
-                logDebug("Start Error: " + e.message);
+            } catch (err) {
+                logDebug("Start Error: " + err.message);
             }
         }
     }
+
+    // EVENT LISTENERS (Dono Touch aur Click support lagaya hai)
+    micBtn.addEventListener("click", toggleListen);
+    micBtn.addEventListener("touchstart", function(e) {
+        // Touch devices par smoothly run karega
+        toggleListen(e);
+    }, {passive: false});
 
     function resetMic() {
         isListening = false;
@@ -206,7 +235,7 @@
 
     // Voice Output Engine
     function speakText(text, callback) {
-        logDebug("JARVIS is preparing to speak...");
+        logDebug("Preparing JARVIS Voice...");
         window.speechSynthesis.cancel(); 
         
         let cleanText = text.replace(/<[^>]*>?/gm, ''); 
@@ -220,19 +249,19 @@
         utterance.pitch = 1.0; 
         utterance.rate = 1.0;
 
-        utterance.onstart = function() { logDebug("Speaker ON - JARVIS talking."); };
-        utterance.onerror = function(e) { logDebug("Speaker ERROR: " + e.error); };
+        utterance.onstart = function() { logDebug("JARVIS is speaking..."); };
+        utterance.onerror = function(e) { logDebug("Speak Error: " + e.error); };
 
         let callbackFired = false;
         function fireCallback() {
             if(!callbackFired && callback) {
                 callbackFired = true;
-                logDebug("Executing Redirect/Callback...");
+                logDebug("Executing Game Redirect...");
                 callback();
             }
         }
 
-        utterance.onend = function() { logDebug("Speaker OFF."); fireCallback(); };
+        utterance.onend = function() { logDebug("Finished Speaking."); fireCallback(); };
 
         synth.speak(utterance);
         if(callback) { setTimeout(fireCallback, 4000); }
