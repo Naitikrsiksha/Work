@@ -11,7 +11,7 @@ const aioData = {
     // ---------------------------------------------------------
     // Ye message chat open hote hi user ko sabse upar dikhega.
     // Agar tumhe koi message nahi dikhana, toh isko khali chhod do aise: ""
-    customInstruction: "📢 Welcome!! aap sabhi logo ko bata du agar koi bugs ya error aapko show hota hai to developer Naitik se sampark kare Dhanyawad 🤚",
+    customInstruction: "📢 Welcome!! aap sabhi logo ko bata du ki ye version is AI ka last version hai aab isme na hi game aur na hi koi update aaega dhanyawad 🤚 ",
 
 
     // ---------------------------------------------------------
